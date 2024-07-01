@@ -45,7 +45,7 @@ PubSub+ Event Broker
       <td>true</td>
       </tr>
       <tr>
-      <td><b><a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#objectmeta-v1-meta">metadata</a></b></td>
+      <td><b><a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#objectmeta-v1-meta">metadata</a></b></td>
       <td>object</td>
       <td>Refer to the Kubernetes API documentation for the fields of the `metadata` field.</td>
       <td>true</td>
@@ -243,7 +243,7 @@ When provided, ensure the secret key name is `preshared_auth_key`. For valid val
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b><a href="#pubsubpluseventbrokerspecsystemscaling">systemScaling</a></b></td>
+        <td><b>systemScaling</b></td>
         <td>object</td>
         <td>
           SystemScaling provides exact fine-grained specification of the event broker scaling parameters
@@ -460,6 +460,13 @@ Monitoring specifies a Prometheus monitoring endpoint for the event broker
         </td>
         <td>false</td>
       </tr><tr>
+        <td><b><a href="#pubsubpluseventbrokerspecmonitoringextraenvvarsindex">extraEnvVars</a></b></td>
+        <td>[]object</td>
+        <td>
+          List of extra environment variables to be added to the Prometheus Exporter container.<br/>
+        </td>
+        <td>false</td>
+      </tr><tr>
         <td><b><a href="#pubsubpluseventbrokerspecmonitoringimage">image</a></b></td>
         <td>object</td>
         <td>
@@ -501,6 +508,40 @@ Monitoring specifies a Prometheus monitoring endpoint for the event broker
             <i>Default</i>: 5<br/>
         </td>
         <td>false</td>
+      </tr></tbody>
+</table>
+
+
+### PubSubPlusEventBroker.spec.monitoring.extraEnvVars[index]
+<sup><sup>[↩ Parent](#pubsubpluseventbrokerspecmonitoring)</sup></sup>
+
+
+
+MonitoringExtraEnvVar defines environment variables to be added to the Prometheus Exporter container for Monitoring
+
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Required</th>
+        </tr>
+    </thead>
+    <tbody><tr>
+        <td><b>name</b></td>
+        <td>string</td>
+        <td>
+          Specifies the Name of an environment variable to be added to the Prometheus Exporter container for Monitoring<br/>
+        </td>
+        <td>true</td>
+      </tr><tr>
+        <td><b>value</b></td>
+        <td>string</td>
+        <td>
+          Specifies the Value of an environment variable to be added to the Prometheus Exporter container for Monitoring<br/>
+        </td>
+        <td>true</td>
       </tr></tbody>
 </table>
 
@@ -1361,7 +1402,8 @@ null or empty namespaces list and null namespaceSelector means "this pod's names
 
 
 
-A label query over a set of resources, in this case pods. If it's null, this PodAffinityTerm matches with no Pods.
+A label query over a set of resources, in this case pods.
+If it's null, this PodAffinityTerm matches with no Pods.
 
 <table>
     <thead>
@@ -1624,8 +1666,8 @@ null or empty namespaces list and null namespaceSelector means "this pod's names
 
 
 
-
-A label query over a set of resources, in this case pods. If it's null, this PodAffinityTerm matches with no Pods.
+A label query over a set of resources, in this case pods.
+If it's null, this PodAffinityTerm matches with no Pods.
 
 <table>
     <thead>
@@ -1968,8 +2010,8 @@ null or empty namespaces list and null namespaceSelector means "this pod's names
 
 
 
-
-A label query over a set of resources, in this case pods. If it's null, this PodAffinityTerm matches with no Pods.
+A label query over a set of resources, in this case pods.
+If it's null, this PodAffinityTerm matches with no Pods.
 
 <table>
     <thead>
@@ -2232,7 +2274,8 @@ null or empty namespaces list and null namespaceSelector means "this pod's names
 
 
 
-A label query over a set of resources, in this case pods. If it's null, this PodAffinityTerm matches with no Pods.
+A label query over a set of resources, in this case pods.
+If it's null, this PodAffinityTerm matches with no Pods.
 
 <table>
     <thead>
@@ -2400,7 +2443,8 @@ merge patch.<br/>
 
 
 
-The pod this Toleration is attached to tolerates any taint that matches the triple <key,value,effect> using the matching operator <operator>.
+The pod this Toleration is attached to tolerates any taint that matches
+the triple <key,value,effect> using the matching operator <operator>.
 
 <table>
     <thead>
@@ -2415,28 +2459,36 @@ The pod this Toleration is attached to tolerates any taint that matches the trip
         <td><b>effect</b></td>
         <td>string</td>
         <td>
-          Effect indicates the taint effect to match. Empty means match all taint effects. When specified, allowed values are NoSchedule, PreferNoSchedule and NoExecute.<br/>
+          Effect indicates the taint effect to match. Empty means match all taint effects.
+When specified, allowed values are NoSchedule, PreferNoSchedule and NoExecute.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>key</b></td>
         <td>string</td>
         <td>
-          Key is the taint key that the toleration applies to. Empty means match all taint keys. If the key is empty, operator must be Exists; this combination means to match all values and all keys.<br/>
+          Key is the taint key that the toleration applies to. Empty means match all taint keys.
+If the key is empty, operator must be Exists; this combination means to match all values and all keys.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>operator</b></td>
         <td>string</td>
         <td>
-          Operator represents a key's relationship to the value. Valid operators are Exists and Equal. Defaults to Equal. Exists is equivalent to wildcard for value, so that a pod can tolerate all taints of a particular category.<br/>
+          Operator represents a key's relationship to the value.
+Valid operators are Exists and Equal. Defaults to Equal.
+Exists is equivalent to wildcard for value, so that a pod can
+tolerate all taints of a particular category.<br/>
         </td>
         <td>false</td>
       </tr><tr>
         <td><b>tolerationSeconds</b></td>
         <td>integer</td>
         <td>
-          TolerationSeconds represents the period of time the toleration (which must be of effect NoExecute, otherwise this field is ignored) tolerates the taint. By default, it is not set, which means tolerate the taint forever (do not evict). Zero and negative values will be treated as 0 (evict immediately) by the system.<br/>
+          TolerationSeconds represents the period of time the toleration (which must be
+of effect NoExecute, otherwise this field is ignored) tolerates the taint. By default,
+it is not set, which means tolerate the taint forever (do not evict). Zero and
+negative values will be treated as 0 (evict immediately) by the system.<br/>
           <br/>
             <i>Format</i>: int64<br/>
         </td>
@@ -2445,7 +2497,8 @@ The pod this Toleration is attached to tolerates any taint that matches the trip
         <td><b>value</b></td>
         <td>string</td>
         <td>
-          Value is the taint value the toleration matches to. If the operator is Exists, the value should be empty, otherwise just a regular string.<br/>
+          Value is the taint value the toleration matches to.
+If the operator is Exists, the value should be empty, otherwise just a regular string.<br/>
         </td>
         <td>false</td>
       </tr></tbody>
@@ -2740,72 +2793,6 @@ Defines the customVolumeMount that can be used mount the data volume instead of 
           Defines the claimName of a custom PersistentVolumeClaim to be used instead<br/>
         </td>
         <td>true</td>
-      </tr></tbody>
-</table>
-
-
-### PubSubPlusEventBroker.spec.systemScaling
-<sup><sup>[↩ Parent](#pubsubpluseventbrokerspec)</sup></sup>
-
-
-
-SystemScaling provides exact fine-grained specification of the event broker scaling parameters
-and the assigned CPU / memory resources to the Pod.
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>maxConnections</b></td>
-        <td>integer</td>
-        <td>
-          <br/>
-          <br/>
-            <i>Default</i>: 100<br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>maxQueueMessages</b></td>
-        <td>integer</td>
-        <td>
-          <br/>
-          <br/>
-            <i>Default</i>: 100<br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>maxSpoolUsage</b></td>
-        <td>integer</td>
-        <td>
-          <br/>
-          <br/>
-            <i>Default</i>: 1000<br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>messagingNodeCpu</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-          <br/>
-            <i>Default</i>: 2<br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>messagingNodeMemory</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-          <br/>
-            <i>Default</i>: 4025Mi<br/>
-        </td>
-        <td>false</td>
       </tr></tbody>
 </table>
 
