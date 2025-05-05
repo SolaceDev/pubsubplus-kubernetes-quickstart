@@ -50,11 +50,14 @@ spec:
                 nullable: true
                 type: string
               brokerContainerSecurity:
-                description: ContainerSecurityContext defines the container security context for the PubSubPlusEventBroker.
+                description: ContainerSecurityContext defines the container security
+                  context for the PubSubPlusEventBroker.
                 properties:
                   readOnlyRootFilesystem:
                     default: false
-                    description: 'Specifies if the root filesystem of the PubSubPlusEventBroker should be read-only. Note: This will only work for versions 10.9 and above.'
+                    description: 'Specifies if the root filesystem of the PubSubPlusEventBroker
+                      should be read-only. Note: This will only work for versions
+                      10.9 and above.'
                     type: boolean
                   runAsGroup:
                     description: Specifies runAsGroup in container security context.
