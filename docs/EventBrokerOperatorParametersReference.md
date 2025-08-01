@@ -45,7 +45,7 @@ PubSub+ Event Broker
       <td>true</td>
       </tr>
       <tr>
-      <td><b><a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.27/#objectmeta-v1-meta">metadata</a></b></td>
+      <td><b><a href="https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.20/#objectmeta-v1-meta">metadata</a></b></td>
       <td>object</td>
       <td>Refer to the Kubernetes API documentation for the fields of the `metadata` field.</td>
       <td>true</td>
@@ -243,7 +243,7 @@ When provided, ensure the secret key name is `preshared_auth_key`. For valid val
         </td>
         <td>false</td>
       </tr><tr>
-        <td><b><a href="#pubsubpluseventbrokerspecsystemscaling">systemScaling</a></b></td>
+        <td><b>systemScaling</b></td>
         <td>object</td>
         <td>
           SystemScaling provides exact fine-grained specification of the event broker scaling parameters
@@ -2750,15 +2750,6 @@ Port defines parameters configure Service details for the Broker
         </td>
         <td>true</td>
       </tr><tr>
-        <td><b>nodePort</b></td>
-        <td>number</td>
-        <td>
-          NodePort is the port number to expose on each node when service type is NodePort. If not specified, a port will be automatically assigned by Kubernetes.<br/>
-          <br/>
-            <i>Format</i>: int32<br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
         <td><b>protocol</b></td>
         <td>enum</td>
         <td>
@@ -2940,72 +2931,6 @@ Defines the customVolumeMount that can be used mount the data volume instead of 
           Defines the claimName of a custom PersistentVolumeClaim to be used instead<br/>
         </td>
         <td>true</td>
-      </tr></tbody>
-</table>
-
-
-### PubSubPlusEventBroker.spec.systemScaling
-<sup><sup>[↩ Parent](#pubsubpluseventbrokerspec)</sup></sup>
-
-
-
-SystemScaling provides exact fine-grained specification of the event broker scaling parameters
-and the assigned CPU / memory resources to the Pod.
-
-<table>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Required</th>
-        </tr>
-    </thead>
-    <tbody><tr>
-        <td><b>maxConnections</b></td>
-        <td>integer</td>
-        <td>
-          <br/>
-          <br/>
-            <i>Default</i>: 100<br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>maxQueueMessages</b></td>
-        <td>integer</td>
-        <td>
-          <br/>
-          <br/>
-            <i>Default</i>: 100<br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>maxSpoolUsage</b></td>
-        <td>integer</td>
-        <td>
-          <br/>
-          <br/>
-            <i>Default</i>: 1000<br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>messagingNodeCpu</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-          <br/>
-            <i>Default</i>: 2<br/>
-        </td>
-        <td>false</td>
-      </tr><tr>
-        <td><b>messagingNodeMemory</b></td>
-        <td>string</td>
-        <td>
-          <br/>
-          <br/>
-            <i>Default</i>: 4025Mi<br/>
-        </td>
-        <td>false</td>
       </tr></tbody>
 </table>
 
