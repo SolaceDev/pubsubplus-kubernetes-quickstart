@@ -1,7 +1,7 @@
 #!/bin/bash
-# Uninstalls the PubSub+ Helm chart to easily upgrade to the PubSub+ Operator.
+# Uninstalls the helm chart to easily upgrade to the event broker software operator.
 #   It ensures the PVC is not uninstalled during the process
-#   It migrates secrets from PubSub+ Helm chart deployment to PubSub+ PubSub+
+#   It migrates secrets from the helm chart deployment to event broker software operator
 # Params:
 #   $1: the chart name
 #   $2: namespace of deployment
