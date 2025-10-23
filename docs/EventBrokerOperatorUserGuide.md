@@ -1,19 +1,19 @@
-# Solace PubSub+ Event Broker Operator User Guide
+# Solace Event Broker Software Operator User Guide
 
-This document provides detailed information for deploying the [Solace PubSub+ Software Event Broker](https://solace.com/products/event-broker/software/) on Kubernetes, using the Solace PubSub+ Event Broker Operator. A basic understanding of [Kubernetes concepts](https://kubernetes.io/docs/concepts/) is assumed.
+This document provides detailed information for deploying the [Solace Event Broker Software](https://solace.com/products/event-broker/software/) on Kubernetes, using the Solace Event Broker Software Operator. A basic understanding of [Kubernetes concepts](https://kubernetes.io/docs/concepts/) is assumed.
 
 The following additional set of documentation is also available:
 
 * For a hands-on quick start, refer to the [Quick Start guide](/README.md).
-* For the `PubSubPlusEventBroker` custom resource (deployment configuration, or "broker spec") parameter options, refer to the [PubSub+ Event Broker Operator Parameters Reference](/docs/EventBrokerOperatorParametersReference.md).
+* For the `PubSubPlusEventBroker` custom resource (deployment configuration, or "broker spec") parameter options, refer to the [Solace Event Broker Operator Parameters Reference](/docs/EventBrokerOperatorParametersReference.md).
 * For version-specific information, refer to the [Operator Release Notes](https://github.com/SolaceProducts/pubsubplus-kubernetes-quickstart/releases)
 
 This guide is focused on deploying the event broker using the Operator, which is the preferred way to deploy. Note that a [Helm-based deployment](https://github.com/SolaceProducts/pubsubplus-kubernetes-helm-quickstart) is also supported but out of scope for this document.
 
 __Contents:__
 
-- [Solace PubSub+ Event Broker Operator User Guide](#solace-pubsub-event-broker-operator-user-guide)
-  - [The Solace PubSub+ Software Event Broker](#the-solace-pubsub-software-event-broker)
+- [Solace Event Broker Operator User Guide](#solace-event-broker-operator-user-guide)
+  - [The Solace Event Broker Software](#the-solace-event-broker-software)
   - [Overview](#overview)
   - [Supported Kubernetes Environments](#supported-kubernetes-environments)
   - [Deployment Architecture](#deployment-architecture)
@@ -108,14 +108,14 @@ __Contents:__
     - [Migration process](#migration-process)
 
 
-## The Solace PubSub+ Software Event Broker
+## The Solace Event Broker Software
 
-[PubSub+ Platform](https://solace.com/products/platform/) is a complete event streaming and management platform for the real-time enterprise. The [PubSub+ Software Event Broker](https://solace.com/products/event-broker/software/) efficiently streams event-driven information between applications, IoT devices, and user interfaces running in the cloud, on-premises, and in hybrid environments using open APIs and protocols like AMQP, JMS, MQTT, REST and WebSocket. It can be installed into a variety of public and private clouds, PaaS, and on-premises environments. Event brokers in multiple locations can be linked together in an [Event Mesh](https://solace.com/what-is-an-event-mesh/) to dynamically share events across the distributed enterprise.
+[Solace Platform](https://solace.com/products/platform/) is a complete event streaming and management platform for the real-time enterprise. The [Solace Event Broker Software](https://solace.com/products/event-broker/software/) efficiently streams event-driven information between applications, IoT devices, and user interfaces running in the cloud, on-premises, and in hybrid environments using open APIs and protocols like AMQP, JMS, MQTT, REST and WebSocket. It can be installed into a variety of public and private clouds, PaaS, and on-premises environments. Event brokers in multiple locations can be linked together in an [Event Mesh](https://solace.com/what-is-an-event-mesh/) to dynamically share events across the distributed enterprise.
 
 ## Overview
 
-The PubSub+ Event Broker Operator supports:
-- Installing a PubSub+ Software Event Broker in non-HA or HA mode.
+The Solace Event Broker Software Operator supports:
+- Installing a Solace Event Broker Software in non-HA or HA mode.
 - Adjusting the deployment to updated parameters (with limitations).
 - Upgrading to a new broker version.
 - Repairing the deployment.
@@ -136,13 +136,13 @@ This includes OpenShift because there are provisions in the Operator to detect O
 
 ###	Operator
 
-The PubSub+ Operator is following the [Kubernetes Operator Pattern](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/). The diagram gives an overview of this mechanism:
+The Solace Operator is following the [Kubernetes Operator Pattern](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/). The diagram gives an overview of this mechanism:
 
 ![alt text](/docs/images/OperatorArchitecture.png "Operator overview")
 
 * `PubSubPlusEventBroker` is registered with Kubernetes as a Custom Resource and it becomes a recognised Kubernetes object type.
-* The `PubSub+ Event Broker Operator` packaged in a Pod within a Deployment must be in running state. It is configured with a set of Kubernetes namespaces to watch, which can be a list of specified ones or all.
-* Creating a `PubSubPlusEventBroker` Custom Resource (CR) in a watched namespace triggers the creation of a new PubSub+ Event Broker deployment that meets the properties specified in the CR manifest (also referred to as "broker spec").
+* The `Solace Event Broker Operator` packaged in a Pod within a Deployment must be in running state. It is configured with a set of Kubernetes namespaces to watch, which can be a list of specified ones or all.
+* Creating a `PubSubPlusEventBroker` Custom Resource (CR) in a watched namespace triggers the creation of a new Solace Event Broker deployment that meets the properties specified in the CR manifest (also referred to as "broker spec").
 * Deviation of the deployment from the desired state or a change in the CR spec also triggers the operator to reconcile, that is to adjust the deployment towards the desired state.
 * The operator runs reconcile in loops, making one adjustment at a time, until the desired state has been reached.
 * Note that RBAC settings are required to permit the operator create Kubernetes objects, especially in other namespaces. Refer to the [Security](#broker-deployment-rbac) section for further details.
@@ -151,7 +151,7 @@ The activity of the Operator can be followed from its Pod logs as described in t
 
 ### Event Broker Deployment
 
-The diagram illustrates a [Highly Available (HA)](https://docs.solace.com/Features/HA-Redundancy/SW-Broker-Redundancy-and-Fault-Tolerance.htm) PubSub+ Event Broker deployment in Kubernetes. HA deployment requires three brokers in designated roles of Primary, Backup and Monitor in an HA group.
+The diagram illustrates a [Highly Available (HA)](https://docs.solace.com/Features/HA-Redundancy/SW-Broker-Redundancy-and-Fault-Tolerance.htm) Solace Event Broker deployment in Kubernetes. HA deployment requires three brokers in designated roles of Primary, Backup and Monitor in an HA group.
 
 ![alt text](/docs/images/BrokerDeployment.png "HA broker deployment")
 
@@ -182,7 +182,7 @@ Support can be enabled for exposing broker metrics to [Prometheus Monitoring](ht
 
 ## Deployment Planning
 
-This section describes options that should be considered when planning a PubSub+ Event Broker deployment, especially for Production. 
+This section describes options that should be considered when planning a Solace Event Broker deployment, especially for Production.
 
 ### Deployment Topology
 
@@ -225,7 +225,7 @@ Example:
 
 #### Using a public registry
 
-For the broker image, default values are `solace/solace-pubsub-standard/` and `latest`, which is the free PubSub+ Software Event Broker Standard Edition from the [public Solace Docker Hub repo](https://hub.docker.com/r/solace/solace-pubsub-standard/). It is generally recommended to set the image tag to a specific build for traceability purposes.
+For the broker image, default values are `solace/solace-pubsub-standard/` and `latest`, which is the free Solace Event Broker Software Standard Edition from the [public Solace Docker Hub repo](https://hub.docker.com/r/solace/solace-pubsub-standard/). It is generally recommended to set the image tag to a specific build for traceability purposes.
 
 Similarly, the default exporter image values are `solace/solace-pubsub-prometheus-exporter` and `latest`.
 
@@ -276,7 +276,7 @@ Then add `<pull-secret-name>` to the list under the `image.pullSecrets` paramete
 
 ### Broker Scaling
 
-The PubSub+ Event Mesh can be scaled vertically and horizontally.
+The Solace Event Mesh can be scaled vertically and horizontally.
 
 You can horizontally scale your mesh by [connecting multiple broker deployments](https://docs.solace.com/Features/DMR/DMR-Overview.htm#Horizontal_Scaling). This is out of scope for this document.
 
@@ -317,7 +317,7 @@ spec:
 
 Also note, that specifying `maxConnections`, `maxQueueMessages`, and `maxSpoolUsage` on initial deployment overwrites the broker's default values. On the other hand, doing the same using upgrade on an existing deployment does not overwrite these values on brokers configuration, but it can be used to prepare (first step) for a manual scale up using CLI where these parameter changes would actually become effective (second step). The Operator will use default configurations in situations where the scaling parameters are not provided or are not valid.
 
->Note: The scaling parameters intentionally use a mix of *camelCase* and *snake_case* to maintain backward and forward compatibility with Solace PubSub+ Software Event Broker configurations. Make sure values are not duplicated for consistency. When using the [resource calculator](https://docs.solace.com/Admin-Ref/Resource-Calculator/pubsubplus-resource-calculator.html), ensure that the scaling parameters are in the correct format to match what the Solace PubSub+ Software Event Broker expects. If invalid scaling parameters are provided, the Operator will revert to default values. For the list of default values, please refer to this [link](/docs/EventBrokerOperatorParametersReference.md).
+>Note: The scaling parameters intentionally use a mix of *camelCase* and *snake_case* to maintain backward and forward compatibility with Solace Event Broker Software configurations. Make sure values are not duplicated for consistency. When using the [resource calculator](https://docs.solace.com/Admin-Ref/Resource-Calculator/pubsubplus-resource-calculator.html), ensure that the scaling parameters are in the correct format to match what the Solace Event Broker Software expects. If invalid scaling parameters are provided, the Operator will revert to default values. For the list of default values, please refer to this [link](/docs/EventBrokerOperatorParametersReference.md).
 
 
 ##### Minimum footprint deployment for Developers
@@ -330,7 +330,7 @@ To activate, set `spec.developer` to `true`.
 
 ### Storage
 
-The [PubSub+ deployment uses disk storage](https://docs.solace.com/Software-Broker/Configuring-Storage.htm) for logging, configuration, guaranteed messaging, and storing diagnostic and other information, allocated from Kubernetes volumes.
+The [Solace deployment uses disk storage](https://docs.solace.com/Software-Broker/Configuring-Storage.htm) for logging, configuration, guaranteed messaging, and storing diagnostic and other information, allocated from Kubernetes volumes.
 
 For a given set of [scaling](#vertical-scaling), use the [Solace online System Resource Calculator](https://docs.solace.com/Admin-Ref/Resource-Calculator/pubsubplus-resource-calculator.html) to determine the required storage size. 
 
@@ -359,7 +359,7 @@ spec:
 
 For message processing brokers (this includes the single broker in non-HA deployment), the requested storage size is set using the `spec.storage.messagingNodeStorageSize` parameter. If not specified then the default value of `30Gi` is used. If the storage size is set to `0` then `useStorageClass` is disregarded and pod-local ephemeral storage is used.
 
-When deploying PubSub+ in an HA redundancy group, monitoring broker nodes have minimal storage requirements compared to working nodes. It is recommended to leave the `spec.storage.monitorNodeStorageSize` parameter unspecified or at default. Although monitoring nodes will work with zero persistent (ephemeral) storage it is recommended to allocate the minimum so diagnostic information remains available with the loss of the monitoring pod.
+When deploying Solace in an HA redundancy group, monitoring broker nodes have minimal storage requirements compared to working nodes. It is recommended to leave the `spec.storage.monitorNodeStorageSize` parameter unspecified or at default. Although monitoring nodes will work with zero persistent (ephemeral) storage it is recommended to allocate the minimum so diagnostic information remains available with the loss of the monitoring pod.
 
 ##### Using an existing Storage Class
 
@@ -439,7 +439,7 @@ Note: Whenever existing PVC is reused, the deployment should maintain the same n
 
 #### Storage solutions and providers
 
-The PubSub+ Software Event Broker has been tested to work with Portworx, Ceph, Cinder (Openstack) and vSphere storage for Kubernetes as documented [here](https://docs.solace.com/Cloud/Deployment-Considerations/resource-requirements-k8s.htm#supported-storage-solutions).
+The Solace Event Broker Software has been tested to work with Portworx, Ceph, Cinder (Openstack) and vSphere storage for Kubernetes as documented [here](https://docs.solace.com/Cloud/Deployment-Considerations/resource-requirements-k8s.htm#supported-storage-solutions).
 
 Regarding providers, note that for [EKS](https://docs.solace.com/Cloud/Deployment-Considerations/installing-ps-cloud-k8s-eks-specific-req.htm) and [GKE](https://docs.solace.com/Cloud/Deployment-Considerations/installing-ps-cloud-k8s-gke-specific-req.htm#storage-class), `xfs` produced the best results during tests. [AKS](https://docs.solace.com/Cloud/Deployment-Considerations/installing-ps-cloud-k8s-aks-specific-req.htm) users can opt for `Local Redundant Storage (LRS)` redundancy which produced the best results when compared with other types available on Azure.
 
@@ -448,7 +448,7 @@ Regarding providers, note that for [EKS](https://docs.solace.com/Cloud/Deploymen
 Broker services (messaging, management) are available through the service ports of the [Broker Service](#event-broker-deployment) object created as part of the deployment.
 
 Clients can access the service ports directly through a configured [standard Kubernetes service type](https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types). Alternatively, services can be mapped to Kubernetes [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress). These options are discussed in details in the upcoming [Using Service Type](#using-a-service-type) and [Using Ingress](#using-ingress) sections.
->Note: An OpenShift-specific alternative of exposing services through Routes is described in the [PubSub+ Openshift Deployment Guide](https://github.com/SolaceProducts/pubsubplus-openshift-quickstart/blob/master/docs/PubSubPlusOpenShiftDeployment.md).
+>Note: An OpenShift-specific alternative of exposing services through Routes is described in the [Solace Openshift Deployment Guide](https://github.com/SolaceProducts/pubsubplus-openshift-quickstart/blob/master/docs/PubSubPlusOpenShiftDeployment.md).
 
 Enabling TLS for services is recommended. For details, see [Configuring TLS for Services](#configuring-tls-for-broker-services).
 
@@ -474,14 +474,14 @@ In summary, a deployment is ready for service requests when there is a broker po
 kubectl get pods --show-labels
 ```
 
-> Note: The Operator uses SEMP to determine the active PubSub+ Event Broker. Restarting SEMP will affect the active broker selection.
+> Note: The Operator uses SEMP to determine the active Solace Event Broker. Restarting SEMP will affect the active broker selection.
 
 #### Using a Service Type
 
-[PubSub+ services](https://docs.solace.com/Configuring-and-Managing/Default-Port-Numbers.htm#Software) can be exposed using one of the following [Kubernetes service types](https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types) by specifying the `spec.service.type` parameter:
+[Solace Event Broker services](https://docs.solace.com/Configuring-and-Managing/Default-Port-Numbers.htm#Software) can be exposed using one of the following [Kubernetes service types](https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types) by specifying the `spec.service.type` parameter:
 
 * LoadBalancer (default) - a load balancer, typically externally accessible depending on the K8s provider.
-* NodePort - maps PubSub+ services to a port on a Kubernetes node; external access depends on access to the Kubernetes node.
+* NodePort - maps Solace Event Broker services to a port on a Kubernetes node; external access depends on access to the Kubernetes node.
 * ClusterIP - internal access only from within K8s.
 
 To support [Internal load balancers](https://kubernetes.io/docs/concepts/services-networking/service/#internal-load-balancer), a provider-specific service annotation can be added by defining the `spec.service.annotations` parameter.
@@ -589,11 +589,11 @@ If you are reusing an existing TLS secret, the new contents are automatically mo
 
 #### Using Ingress
 
-The `LoadBalancer` or `NodePort` service types can be used to expose all services from one PubSub+ broker (one-to-one relationship). [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress) can be used to enable efficient external access from a single external IP address to multiple PubSub+ services, potentially provided by multiple brokers.
+The `LoadBalancer` or `NodePort` service types can be used to expose all services from one Solace Event Broker (one-to-one relationship). [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress) can be used to enable efficient external access from a single external IP address to multiple Solace Event Broker Services, potentially provided by multiple brokers.
 
-The following table gives an overview of how external access can be configured for PubSub+ services via Ingress.
+The following table gives an overview of how external access can be configured for Solace Event Broker services via Ingress.
 
-| PubSub+ service / protocol, configuration and requirements | HTTP, no TLS | HTTPS with TLS terminate at ingress | HTTPS with TLS re-encrypt at ingress | General TCP over TLS with passthrough to broker |
+| Solace service / protocol, configuration and requirements | HTTP, no TLS | HTTPS with TLS terminate at ingress | HTTPS with TLS re-encrypt at ingress | General TCP over TLS with passthrough to broker |
 | -- | -- | -- | -- | -- |
 | **Notes:** | -- | Requires TLS config on Ingress-controller | Requires TLS config on broker AND TLS config on Ingress-controller | Requires TLS config on broker. Client must use SNI to provide target host |
 | WebSockets, MQTT over WebSockets | Supported | Supported | Supported | Supported (routing via SNI) |
@@ -628,7 +628,7 @@ example.address                   nginx   frontend.host
 
 ##### HTTP, no TLS
 
-The following example configures ingress to [access PubSub+ REST service](https://docs.solace.com/Services/Configuring-EventBroker-for-REST.htm). Replace `<my-pubsubplus-service>` with the name of the service of your deployment (hint: the service name is similar to your pod names). The port name must match the `service.ports` name in the broker spec file.
+The following example configures ingress to [access Solace REST service](https://docs.solace.com/Services/Configuring-EventBroker-for-REST.htm). Replace `<my-pubsubplus-service>` with the name of the service of your deployment (hint: the service name is similar to your pod names). The port name must match the `service.ports` name in the broker spec file.
 
 ```yaml
 apiVersion: networking.k8s.io/v1
@@ -684,7 +684,7 @@ External requests must be targeted to the ingress External-IP through the define
 
 ##### HTTPS with TLS re-encrypt at ingress
 
-This only differs from above in that the request is forwarded to a TLS-encrypted PubSub+ service port. The broker must have TLS configured but there are no specific requirements for the broker certificate as the ingress does not enforce it.
+This only differs from above in that the request is forwarded to a TLS-encrypted event broker service port. The broker must have TLS configured but there are no specific requirements for the broker certificate as the ingress does not enforce it.
 
 The difference in the Ingress manifest is an NGINX-specific annotation marking that the backend is using TLS, and the service target port in the last line - it refers now to a TLS backend port:
 
@@ -712,9 +712,9 @@ The TLS passthrough capability must be explicitly enabled on the NGINX ingress c
 
 The Ingress manifest specifies "passthrough" by adding the `nginx.ingress.kubernetes.io/ssl-passthrough: "true"` annotation.
 
-The deployed PubSub+ broker(s) must have TLS configured with a certificate that includes DNS names in CN and/or SAN, that match the host used. In the example, the broker server certificate can specify the host `*.broker1.bar.com`, so multiple services can be exposed from `broker1`, distinguished by the host FQDN.
+The deployed event broker service(s) must have TLS configured with a certificate that includes DNS names in CN and/or SAN, that match the host used. In the example, the broker server certificate can specify the host `*.broker1.bar.com`, so multiple services can be exposed from `broker1`, distinguished by the host FQDN.
 
-The protocol client must support SNI. It depends on the client if it uses the server certificate CN or SAN for host name validation. Most recent clients use SAN, for example the PubSub+ Java API requires host DNS names in the SAN when using SNI.
+The protocol client must support SNI. It depends on the client if it uses the server certificate CN or SAN for host name validation. Most recent clients use SAN, for example the Solace Java API requires host DNS names in the SAN when using SNI.
 
 With above, an ingress example looks following:
 
@@ -839,7 +839,7 @@ In a Production environment additional steps are required to ensure there is onl
 
 #### Broker Security Context
 
-The following container-level security context configuration is automatically set by the operator for the PubSub+ broker container
+The following container-level security context configuration is automatically set by the operator for the Solace Event Broker container
 
 ```
 capabilities:
@@ -903,99 +903,99 @@ There are two sets of metrics exposed through two paths:
 
 The following table lists the metrics exposed by the paths:
 
-| Path | Definition | Name | Type |
-| --- | --- | --- | --- |
+| Path | Definition                                                                                      | Name | Type |
+| --- |-------------------------------------------------------------------------------------------------| --- | --- |
 | **`solace-std`** |
-|| Max number of Local Bridges | solace_bridges_max_num_local_bridges | gauge
-|| Max number of Remote Bridges | solace_bridges_max_num_remote_bridges | gauge
-|| Max number of Bridges | solace_bridges_max_num_total_bridges | gauge
-|| Max total number of Remote Bridge Subscription | solace_bridges_max_num_total_remote_bridge_subscriptions | gauge
-|| Number of Local Bridges | solace_bridges_num_local_bridges | gauge
-|| Number of Remote Bridges | solace_bridges_num_remote_bridges | gauge
-|| Number of Bridges | solace_bridges_num_total_bridges | gauge
-|| Total number of Remote Bridge Subscription | solace_bridges_num_total_remote_bridge_subscriptions | gauge
-|| Config Sync Ownership (0-Master, 1-Slave, 2-Unknown) | solace_configsync_table_ownership | gauge
+|| Max number of Local Bridges                                                                     | solace_bridges_max_num_local_bridges | gauge
+|| Max number of Remote Bridges                                                                    | solace_bridges_max_num_remote_bridges | gauge
+|| Max number of Bridges                                                                           | solace_bridges_max_num_total_bridges | gauge
+|| Max total number of Remote Bridge Subscription                                                  | solace_bridges_max_num_total_remote_bridge_subscriptions | gauge
+|| Number of Local Bridges                                                                         | solace_bridges_num_local_bridges | gauge
+|| Number of Remote Bridges                                                                        | solace_bridges_num_remote_bridges | gauge
+|| Number of Bridges                                                                               | solace_bridges_num_total_bridges | gauge
+|| Total number of Remote Bridge Subscription                                                      | solace_bridges_num_total_remote_bridge_subscriptions | gauge
+|| Config Sync Ownership (0-Master, 1-Slave, 2-Unknown)                                            | solace_configsync_table_ownership | gauge
 || Config Sync State (0-Down, 1-Up, 2-Unknown, 3-In-Sync, 4-Reconciling, 5-Blocked, 6-Out-Of-Sync) | solace_configsync_table_syncstate | gauge
-|| Config Sync Time in State | solace_configsync_table_timeinstateseconds | counter
-|| Config Sync Resource (0-Router, 1-Vpn, 2-Unknown, 3-None, 4-All) | solace_configsync_table_type | gauge
-|| Average compute latency | solace_system_compute_latency_avg_seconds | gauge
-|| Current compute latency | solace_system_compute_latency_cur_seconds | gauge
-|| Maximum compute latency | solace_system_compute_latency_max_seconds | gauge
-|| Minimum compute latency | solace_system_compute_latency_min_seconds | gauge
-|| Average disk latency | solace_system_disk_latency_avg_seconds | gauge
-|| Current disk latency | solace_system_disk_latency_cur_seconds | gauge
-|| Maximum disk latency | solace_system_disk_latency_max_seconds | gauge
-|| Minimum disk latency | solace_system_disk_latency_min_seconds | gauge
-|| Average mate link latency | solace_system_mate_link_latency_avg_seconds | gauge
-|| Current mate link latency | solace_system_mate_link_latency_cur_seconds | gauge
-|| Maximum mate link latency | solace_system_mate_link_latency_max_seconds | gauge
-|| Minimum mate link latency | solace_system_mate_link_latency_min_seconds | gauge
-|| Redundancy configuration (0-Disabled, 1-Enabled, 2-Shutdown) | solace_system_redundancy_config | gauge
-|| Is local node the active messaging node? (0-not active, 1-active). | solace_system_redundancy_local_active | gauge
-|| Redundancy role (0=Backup, 1=Primary, 2=Monitor, 3-Undefined). | solace_system_redundancy_role | gauge
-|| Is redundancy up? (0=Down, 1=Up). | solace_system_redundancy_up | gauge
-|| Total disk usage in percent | solace_system_spool_disk_partition_usage_active_percent | gauge
-|| Total disk usage of mate instance in percent | solace_system_spool_disk_partition_usage_mate_percent | gauge
-|| Utilization of spool files in percent | solace_system_spool_files_utilization_percent | gauge
-|| Spool configured max disk usage | solace_system_spool_quota_bytes | gauge
-|| Spool configured max number of messages | solace_system_spool_quota_msgs | gauge
-|| Spool total persisted usage | solace_system_spool_usage_bytes | gauge
-|| Spool total number of persisted messages | solace_system_spool_usage_msgs | gauge
-|| Solace Version as WWWXXXYYYZZZ  | solace_system_version_currentload | gauge
-|| Broker uptime in seconds  | solace_system_version_uptime_totalsecs | gauge
-|| Was the last scrape of Solace broker successful? | solace_up | gauge
-|| Number of connections | solace_vpn_connections | gauge
-|| Total number of AMQP connections | solace_vpn_connections_service_amqp | gauge
-|| Total number of SMF connections | solace_vpn_connections_service_smf | gauge
-|| VPN is enabled | solace_vpn_enabled | gauge
-|| VPN is a management VPN | solace_vpn_is_management_vpn | gauge
-|| Local status (0=Down, 1=Up) | solace_vpn_local_status | gauge
-|| VPN is locally configured | solace_vpn_locally_configured | gauge
-|| VPN is operational | solace_vpn_operational | gauge
-|| Maximum number of connections | solace_vpn_quota_connections | gauge
-|| Replication Admin Status (0-shutdown, 1-enabled, 2-n/a) | solace_vpn_replication_admin_state | gauge
-|| Replication Config Status (0-standby, 1-active, 2-n/a) | solace_vpn_replication_config_state | gauge
-|| Replication Tx Replication Mode (0-async, 1-sync) | solace_vpn_replication_transaction_replication_mode | gauge
-|| Spool configured max disk usage | solace_vpn_spool_quota_bytes | gauge
-|| Spool total persisted usage | solace_vpn_spool_usage_bytes | gauge
-|| Spool total number of persisted messages | solace_vpn_spool_usage_msgs | gauge
-|| Total unique local subscriptions count | solace_vpn_total_local_unique_subscriptions | gauge
-|| Total unique remote subscriptions count | solace_vpn_total_remote_unique_subscriptions | gauge
-|| Total unique subscriptions count | solace_vpn_total_unique_subscriptions | gauge
-|| Total subscriptions count | solace_vpn_unique_subscriptions | gauge
+|| Config Sync Time in State                                                                       | solace_configsync_table_timeinstateseconds | counter
+|| Config Sync Resource (0-Router, 1-Vpn, 2-Unknown, 3-None, 4-All)                                | solace_configsync_table_type | gauge
+|| Average compute latency                                                                         | solace_system_compute_latency_avg_seconds | gauge
+|| Current compute latency                                                                         | solace_system_compute_latency_cur_seconds | gauge
+|| Maximum compute latency                                                                         | solace_system_compute_latency_max_seconds | gauge
+|| Minimum compute latency                                                                         | solace_system_compute_latency_min_seconds | gauge
+|| Average disk latency                                                                            | solace_system_disk_latency_avg_seconds | gauge
+|| Current disk latency                                                                            | solace_system_disk_latency_cur_seconds | gauge
+|| Maximum disk latency                                                                            | solace_system_disk_latency_max_seconds | gauge
+|| Minimum disk latency                                                                            | solace_system_disk_latency_min_seconds | gauge
+|| Average mate link latency                                                                       | solace_system_mate_link_latency_avg_seconds | gauge
+|| Current mate link latency                                                                       | solace_system_mate_link_latency_cur_seconds | gauge
+|| Maximum mate link latency                                                                       | solace_system_mate_link_latency_max_seconds | gauge
+|| Minimum mate link latency                                                                       | solace_system_mate_link_latency_min_seconds | gauge
+|| Redundancy configuration (0-Disabled, 1-Enabled, 2-Shutdown)                                    | solace_system_redundancy_config | gauge
+|| Is local node the active messaging node? (0-not active, 1-active).                              | solace_system_redundancy_local_active | gauge
+|| Redundancy role (0=Backup, 1=Primary, 2=Monitor, 3-Undefined).                                  | solace_system_redundancy_role | gauge
+|| Is redundancy up? (0=Down, 1=Up).                                                               | solace_system_redundancy_up | gauge
+|| Total disk usage in percent                                                                     | solace_system_spool_disk_partition_usage_active_percent | gauge
+|| Total disk usage of mate instance in percent                                                    | solace_system_spool_disk_partition_usage_mate_percent | gauge
+|| Utilization of spool files in percent                                                           | solace_system_spool_files_utilization_percent | gauge
+|| Spool configured max disk usage                                                                 | solace_system_spool_quota_bytes | gauge
+|| Spool configured max number of messages                                                         | solace_system_spool_quota_msgs | gauge
+|| Spool total persisted usage                                                                     | solace_system_spool_usage_bytes | gauge
+|| Spool total number of persisted messages                                                        | solace_system_spool_usage_msgs | gauge
+|| Solace Version as WWWXXXYYYZZZ                                                                  | solace_system_version_currentload | gauge
+|| Broker uptime in seconds                                                                        | solace_system_version_uptime_totalsecs | gauge
+|| Was the last scrape of Solace Event Broker successful?                                          | solace_up | gauge
+|| Number of connections                                                                           | solace_vpn_connections | gauge
+|| Total number of AMQP connections                                                                | solace_vpn_connections_service_amqp | gauge
+|| Total number of SMF connections                                                                 | solace_vpn_connections_service_smf | gauge
+|| VPN is enabled                                                                                  | solace_vpn_enabled | gauge
+|| VPN is a management VPN                                                                         | solace_vpn_is_management_vpn | gauge
+|| Local status (0=Down, 1=Up)                                                                     | solace_vpn_local_status | gauge
+|| VPN is locally configured                                                                       | solace_vpn_locally_configured | gauge
+|| VPN is operational                                                                              | solace_vpn_operational | gauge
+|| Maximum number of connections                                                                   | solace_vpn_quota_connections | gauge
+|| Replication Admin Status (0-shutdown, 1-enabled, 2-n/a)                                         | solace_vpn_replication_admin_state | gauge
+|| Replication Config Status (0-standby, 1-active, 2-n/a)                                          | solace_vpn_replication_config_state | gauge
+|| Replication Tx Replication Mode (0-async, 1-sync)                                               | solace_vpn_replication_transaction_replication_mode | gauge
+|| Spool configured max disk usage                                                                 | solace_vpn_spool_quota_bytes | gauge
+|| Spool total persisted usage                                                                     | solace_vpn_spool_usage_bytes | gauge
+|| Spool total number of persisted messages                                                        | solace_vpn_spool_usage_msgs | gauge
+|| Total unique local subscriptions count                                                          | solace_vpn_total_local_unique_subscriptions | gauge
+|| Total unique remote subscriptions count                                                         | solace_vpn_total_remote_unique_subscriptions | gauge
+|| Total unique subscriptions count                                                                | solace_vpn_total_unique_subscriptions | gauge
+|| Total subscriptions count                                                                       | solace_vpn_unique_subscriptions | gauge
 | **`solace-det`** |
-|| Is client a slow subscriber? (0=not slow, 1=slow) | solace_client_slow_subscriber | gauge
-|| Number of clients bound to queue | solace_queue_binds | gauge
-|| Number of discarded received messages | solace_client_rx_discarded_msgs_total | counter
-|| Number of discarded received messages | solace_vpn_rx_discarded_msgs_total | counter
-|| Number of discarded transmitted messages | solace_client_tx_discarded_msgs_total | counter
-|| Number of discarded transmitted messages | solace_vpn_tx_discarded_msgs_total | counter
-|| Number of received bytes | solace_client_rx_bytes_total | counter
-|| Number of received bytes | solace_vpn_rx_bytes_total | counter
-|| Number of received messages | solace_client_rx_msgs_total | counter
-|| Number of received messages | solace_vpn_rx_msgs_total | counter
-|| Number of transmitted bytes | solace_client_tx_bytes_total | counter
-|| Number of transmitted bytes | solace_vpn_tx_bytes_total | counter
-|| Number of transmitted messages | solace_client_tx_msgs_total | counter
-|| Number of transmitted messages | solace_vpn_tx_msgs_total | counter
-|| Queue spool configured max disk usage in bytes | solace_queue_spool_quota_bytes | gauge
-|| Queue spool total of all spooled messages in bytes | solace_queue_byte_spooled | gauge
-|| Queue spool total of all spooled messages | solace_queue_msg_spooled | gauge
-|| Queue spool usage in bytes | solace_queue_spool_usage_bytes | gauge
-|| Queue spooled number of messages | solace_queue_spool_usage_msgs | gauge
-|| Queue total msg redeliveries | solace_queue_msg_redelivered | gauge
-|| Queue total msg retransmitted on transport | solace_queue_msg_retransmited | gauge
-|| Queue total number of messages delivered to dmq due to exceeded max redelivery | solace_queue_msg_max_redelivered_dmq | gauge
-|| Queue total number of messages delivered to dmq due to ttl expiry | solace_queue_msg_ttl_dmq | gauge
-|| Queue total number of messages discarded due to exceeded max redelivery | solace_queue_msg_max_redelivered_discarded | gauge
-|| Queue total number of messages discarded due to spool shutdown | solace_queue_msg_shutdown_discarded | gauge
-|| Queue total number of messages discarded due to ttl expiry | solace_queue_msg_ttl_discarded | gauge
-|| Queue total number of messages exceeded the max message size | solace_queue_msg_max_msg_size_exceeded | gauge
-|| Queue total number of messages exceeded the spool usage | solace_queue_msg_spool_usage_exceeded | gauge
-|| Queue total number of messages failed delivery to dmq due to exceeded max redelivery | solace_queue_msg_max_redelivered_dmq_failed | gauge
-|| Queue total number of messages that failed delivery to dmq due to ttl expiry | solace_queue_msg_ttl_dmq_failed | gauge
-|| Queue total number that was deleted | solace_queue_msg_total_deleted | gauge
-|| Was the last scrape of Solace broker successful | solace_up | gauge
+|| Is client a slow subscriber? (0=not slow, 1=slow)                                               | solace_client_slow_subscriber | gauge
+|| Number of clients bound to queue                                                                | solace_queue_binds | gauge
+|| Number of discarded received messages                                                           | solace_client_rx_discarded_msgs_total | counter
+|| Number of discarded received messages                                                           | solace_vpn_rx_discarded_msgs_total | counter
+|| Number of discarded transmitted messages                                                        | solace_client_tx_discarded_msgs_total | counter
+|| Number of discarded transmitted messages                                                        | solace_vpn_tx_discarded_msgs_total | counter
+|| Number of received bytes                                                                        | solace_client_rx_bytes_total | counter
+|| Number of received bytes                                                                        | solace_vpn_rx_bytes_total | counter
+|| Number of received messages                                                                     | solace_client_rx_msgs_total | counter
+|| Number of received messages                                                                     | solace_vpn_rx_msgs_total | counter
+|| Number of transmitted bytes                                                                     | solace_client_tx_bytes_total | counter
+|| Number of transmitted bytes                                                                     | solace_vpn_tx_bytes_total | counter
+|| Number of transmitted messages                                                                  | solace_client_tx_msgs_total | counter
+|| Number of transmitted messages                                                                  | solace_vpn_tx_msgs_total | counter
+|| Queue spool configured max disk usage in bytes                                                  | solace_queue_spool_quota_bytes | gauge
+|| Queue spool total of all spooled messages in bytes                                              | solace_queue_byte_spooled | gauge
+|| Queue spool total of all spooled messages                                                       | solace_queue_msg_spooled | gauge
+|| Queue spool usage in bytes                                                                      | solace_queue_spool_usage_bytes | gauge
+|| Queue spooled number of messages                                                                | solace_queue_spool_usage_msgs | gauge
+|| Queue total msg redeliveries                                                                    | solace_queue_msg_redelivered | gauge
+|| Queue total msg retransmitted on transport                                                      | solace_queue_msg_retransmited | gauge
+|| Queue total number of messages delivered to dmq due to exceeded max redelivery                  | solace_queue_msg_max_redelivered_dmq | gauge
+|| Queue total number of messages delivered to dmq due to ttl expiry                               | solace_queue_msg_ttl_dmq | gauge
+|| Queue total number of messages discarded due to exceeded max redelivery                         | solace_queue_msg_max_redelivered_discarded | gauge
+|| Queue total number of messages discarded due to spool shutdown                                  | solace_queue_msg_shutdown_discarded | gauge
+|| Queue total number of messages discarded due to ttl expiry                                      | solace_queue_msg_ttl_discarded | gauge
+|| Queue total number of messages exceeded the max message size                                    | solace_queue_msg_max_msg_size_exceeded | gauge
+|| Queue total number of messages exceeded the spool usage                                         | solace_queue_msg_spool_usage_exceeded | gauge
+|| Queue total number of messages failed delivery to dmq due to exceeded max redelivery            | solace_queue_msg_max_redelivered_dmq_failed | gauge
+|| Queue total number of messages that failed delivery to dmq due to ttl expiry                    | solace_queue_msg_ttl_dmq_failed | gauge
+|| Queue total number that was deleted                                                             | solace_queue_msg_total_deleted | gauge
+|| Was the last scrape of Solace Event Broker successful                                           | solace_up | gauge
 
 
 ### Connecting with Prometheus
@@ -1076,7 +1076,7 @@ This adds the deployment's metrics service (by matching labels) to the Prometheu
 
 The ServiceMonitor's selector can be adjusted to match all broker deployments in the namespace by removing `instance` from the matched labels. Also, multiple endpoints can be listed to obtain the combination of metrics from those Exporter paths.
 
-The `ServiceMonitor` example above specifies that three target endpoints are scraped to get the combination of all metrics available from the broker deployment. The metrics endpoints can be accessed at the port named `tcp-metrics` and at the PubSub+ Exporter path, e.g.: `/solace-std` is added to the scrape request REST API calls.
+The `ServiceMonitor` example above specifies that three target endpoints are scraped to get the combination of all metrics available from the broker deployment. The metrics endpoints can be accessed at the port named `tcp-metrics` and at the Solace Event Broker Exporter path, e.g.: `/solace-std` is added to the scrape request REST API calls.
 
 ### Grafana Visualization of Broker Metrics
 
@@ -1176,7 +1176,7 @@ Generally, all services including management and messaging are accessible throug
 
 ### Gaining admin access to the event broker
 
-The [PubSub+ Broker Manager](https://docs.solace.com/Admin/Broker-Manager/PubSub-Manager-Overview.htm) is the recommended simplest way to administer the event broker for common tasks.
+The [Solace Event Broker Manager](https://docs.solace.com/Admin/Broker-Manager/PubSub-Manager-Overview.htm) is the recommended simplest way to administer the event broker for common tasks.
 
 #### Admin Credentials
 
@@ -1194,7 +1194,7 @@ kubectl get secret my-admin-secret -o jsonpath='{.data.username_admin_password}'
 
 #### Management access port
 
-Use the Load Balancer's external Public IP at port 8080 to access management services including PubSub+ Broker Manager, SolAdmin and SEMP access.
+Use the Load Balancer's external Public IP at port 8080 to access management services including Solace Event Broker Manager, SolAdmin and SEMP access.
 
 #### Broker CLI access via the load balancer
 
@@ -1270,7 +1270,7 @@ kubectl exec -it <broker-pod-name> -- bash
 
 The newly created event broker instance comes with a [basic configuration](https://docs.solace.com/Software-Broker/SW-Broker-Configuration-Defaults.htm) of a `default` client username with no authentication on the `default` message VPN.
 
-An easy first test is using the [PubSub+ Broker Manager's built-in Try-Me tool](https://docs.solace.com/Admin/Broker-Manager/PubSub-Manager-Overview.htm?Highlight=manager#Test-Messages). Try-Me is based on JavaScript making use of the WebSockets API for messaging at port 8008.
+An easy first test is using the [Solace Event Broker Manager's built-in Try-Me tool](https://docs.solace.com/Admin/Broker-Manager/PubSub-Manager-Overview.htm?Highlight=manager#Test-Messages). Try-Me is based on JavaScript making use of the WebSockets API for messaging at port 8008.
 
 To test data traffic using other supported APIs, visit the Solace Developer Portal [APIs & Protocols](https://www.solace.dev/ ). Under each option there is a Publish/Subscribe tutorial that will help you get started and provide the specific default port to use.
 
@@ -1337,7 +1337,7 @@ deployments.
 
 #### Viewing events
 
-Kubernetes collects [all events for a cluster in one pool](https://pwittrock.github.io/docs/tasks/debug-application-cluster/events-stackdriver). This includes events related to the PubSub+ deployment.
+Kubernetes collects [all events for a cluster in one pool](https://pwittrock.github.io/docs/tasks/debug-application-cluster/events-stackdriver). This includes events related to the Solace Event Broker deployment.
 
 It is recommended to watch events when creating or upgrading a Solace deployment. Events clear after about an hour. You can query all available events:
 
@@ -1355,7 +1355,7 @@ If pods stay in pending state and `kubectl describe pods` reveals there are not 
 
 Pods might also stay in pending state because [storage requirements](#storage) cannot be met. Check `kubectl get pv,pvc`. PVCs and PVs should be in bound state and if not then use `kubectl describe pvc` for any issues.
 
-Unless otherwise specified, a default storage class must be available for default PubSub+ deployment configuration.
+Unless otherwise specified, a default storage class must be available for default Solace Event Broker deployment configuration.
 ```bash
 kubectl get storageclasses
 ```
@@ -1470,7 +1470,7 @@ In this case the deployment can be reinstalled and continue from the point befor
 
 ### Install Operator
 
-There are two recommended options to acquire the PubSub+ Event Broker Operator:
+There are two recommended options to acquire the Solace Event Broker Software Operator:
 * Operator Lifecycle Manager (OLM)
 * Command Line direct install
 
@@ -1478,13 +1478,13 @@ There are two recommended options to acquire the PubSub+ Event Broker Operator:
 
 The Operator Lifecycle Manager (OLM) tool can be used to install, update, and manage the lifecycle of community operators available from [OperatorHub](https://operatorhub.io).
 
-Follow the steps from [OperatorHub](https://operatorhub.io/operator/pubsubplus-eventbroker-operator) to setup OLM and to install the PubSub+ Event Broker Operator. Click on the Install button to see the detailed instructions.
+Follow the steps from [OperatorHub](https://operatorhub.io/operator/pubsubplus-eventbroker-operator) to setup OLM and to install the Solace Event Broker Software Operator. Click on the Install button to see the detailed instructions.
 
 The default namespace is `operators` for operators installed from OperatorHub.
 
 #### From Command Line
 
-Use the `deploy.yaml` from the [PubSub+ Event Broker Operator GitHub project](https://github.com/SolaceProducts/pubsubplus-kubernetes-quickstart). It includes a collection of manifests for all the Kubernetes resources that must be created.
+Use the `deploy.yaml` from the [Solace Event Broker Software Operator GitHub project](https://github.com/SolaceProducts/pubsubplus-kubernetes-quickstart). It includes a collection of manifests for all the Kubernetes resources that must be created.
 
 The following example creates a default deployment. Edit the `deploy.yaml` before applying to customize options:
 ```sh
@@ -1545,13 +1545,13 @@ A given version of the Operator has a dependency on the PubSubPlusEventBroker Cu
 
 ##### Upgrading the Operator only
 
-You can use OLM to manage installing new versions of the Operator as they become available. The default install of the PubSub+ Event Broker Operator is set to perform automatic updates. This can be changed to `Manual` by editing the broker subscription in the `operators` namespace.
+You can use OLM to manage installing new versions of the Operator as they become available. The default install of the Solace Event Broker Software Operator is set to perform automatic updates. This can be changed to `Manual` by editing the broker subscription in the `operators` namespace.
 
 #### Upgrade CRD and Operator
 
 OLM automatically manages the CRD and Operator updates.
 
-A direct installation requires taking `deploy.yaml` from the correctly tagged version of the [PubSub+ Event Broker Operator GitHub project](https://github.com/SolaceProducts/pubsubplus-kubernetes-quickstart), because it includes the corresponding version of the CRD. 
+A direct installation requires taking `deploy.yaml` from the correctly tagged version of the [Solace Event Broker Software Operator GitHub project](https://github.com/SolaceProducts/pubsubplus-kubernetes-quickstart), because it includes the corresponding version of the CRD.
 
 >Note: Although the goal is to keep the CRD API versions backwards compatible, it might become necessary to introduce a new API version. In that case, detailed upgrade instructions will be provided in the Release Notes.
 
