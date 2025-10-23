@@ -1,6 +1,6 @@
-# Solace Event Broker Software Operator User Guide
+# Solace Event Broker Operator User Guide
 
-This document provides detailed information for deploying the [Solace Event Broker Software](https://solace.com/products/event-broker/software/) on Kubernetes, using the Solace Event Broker Software Operator. A basic understanding of [Kubernetes concepts](https://kubernetes.io/docs/concepts/) is assumed.
+This document provides detailed information for deploying the [Solace Event Broker Software](https://solace.com/products/event-broker/software/) on Kubernetes, using the Solace Event Broker Operator. A basic understanding of [Kubernetes concepts](https://kubernetes.io/docs/concepts/) is assumed.
 
 The following additional set of documentation is also available:
 
@@ -12,7 +12,7 @@ This guide is focused on deploying the event broker using the Operator, which is
 
 __Contents:__
 
-- [Solace Event Broker Operator User Guide](#solace-event-broker-software-operator-user-guide)
+- [Solace Event Broker Operator User Guide](#solace-event-broker-operator-user-guide)
   - [The Solace Event Broker Software](#the-solace-event-broker-software)
   - [Overview](#overview)
   - [Supported Kubernetes Environments](#supported-kubernetes-environments)
@@ -114,7 +114,7 @@ __Contents:__
 
 ## Overview
 
-The Solace Event Broker Software Operator supports:
+The Solace Event Broker Operator supports:
 - Installing a Solace Event Broker Software in non-HA or HA mode.
 - Adjusting the deployment to updated parameters (with limitations).
 - Upgrading to a new broker version.
@@ -276,7 +276,7 @@ Then add `<pull-secret-name>` to the list under the `image.pullSecrets` paramete
 
 ### Broker Scaling
 
-The Solace Event Mesh can be scaled vertically and horizontally.
+The Event Mesh can be scaled vertically and horizontally.
 
 You can horizontally scale your mesh by [connecting multiple broker deployments](https://docs.solace.com/Features/DMR/DMR-Overview.htm#Horizontal_Scaling). This is out of scope for this document.
 
@@ -478,10 +478,10 @@ kubectl get pods --show-labels
 
 #### Using a Service Type
 
-[Solace Event Broker services](https://docs.solace.com/Configuring-and-Managing/Default-Port-Numbers.htm#Software) can be exposed using one of the following [Kubernetes service types](https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types) by specifying the `spec.service.type` parameter:
+[Solace event broker services](https://docs.solace.com/Configuring-and-Managing/Default-Port-Numbers.htm#Software) can be exposed using one of the following [Kubernetes service types](https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types) by specifying the `spec.service.type` parameter:
 
 * LoadBalancer (default) - a load balancer, typically externally accessible depending on the K8s provider.
-* NodePort - maps Solace Event Broker services to a port on a Kubernetes node; external access depends on access to the Kubernetes node.
+* NodePort - maps event broker services to a port on a Kubernetes node; external access depends on access to the Kubernetes node.
 * ClusterIP - internal access only from within K8s.
 
 To support [Internal load balancers](https://kubernetes.io/docs/concepts/services-networking/service/#internal-load-balancer), a provider-specific service annotation can be added by defining the `spec.service.annotations` parameter.
@@ -589,9 +589,9 @@ If you are reusing an existing TLS secret, the new contents are automatically mo
 
 #### Using Ingress
 
-The `LoadBalancer` or `NodePort` service types can be used to expose all services from one Solace Event Broker (one-to-one relationship). [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress) can be used to enable efficient external access from a single external IP address to multiple Solace Event Broker Services, potentially provided by multiple brokers.
+The `LoadBalancer` or `NodePort` service types can be used to expose all services from one Solace Event Broker (one-to-one relationship). [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress) can be used to enable efficient external access from a single external IP address to multiple Solace event broker services, potentially provided by multiple brokers.
 
-The following table gives an overview of how external access can be configured for Solace Event Broker services via Ingress.
+The following table gives an overview of how external access can be configured for event broker services via Ingress.
 
 | Solace service / protocol, configuration and requirements | HTTP, no TLS | HTTPS with TLS terminate at ingress | HTTPS with TLS re-encrypt at ingress | General TCP over TLS with passthrough to broker |
 | -- | -- | -- | -- | -- |
@@ -1176,7 +1176,7 @@ Generally, all services including management and messaging are accessible throug
 
 ### Gaining admin access to the event broker
 
-The [Solace Event Broker Manager](https://docs.solace.com/Admin/Broker-Manager/PubSub-Manager-Overview.htm) is the recommended simplest way to administer the event broker for common tasks.
+The [Broker Manager](https://docs.solace.com/Admin/Broker-Manager/PubSub-Manager-Overview.htm) is the recommended simplest way to administer the event broker for common tasks.
 
 #### Admin Credentials
 
@@ -1194,7 +1194,7 @@ kubectl get secret my-admin-secret -o jsonpath='{.data.username_admin_password}'
 
 #### Management access port
 
-Use the Load Balancer's external Public IP at port 8080 to access management services including Solace Event Broker Manager, SolAdmin and SEMP access.
+Use the Load Balancer's external Public IP at port 8080 to access management services including Broker Manager, SolAdmin and SEMP access.
 
 #### Broker CLI access via the load balancer
 
@@ -1270,7 +1270,7 @@ kubectl exec -it <broker-pod-name> -- bash
 
 The newly created event broker instance comes with a [basic configuration](https://docs.solace.com/Software-Broker/SW-Broker-Configuration-Defaults.htm) of a `default` client username with no authentication on the `default` message VPN.
 
-An easy first test is using the [Solace Event Broker Manager's built-in Try-Me tool](https://docs.solace.com/Admin/Broker-Manager/PubSub-Manager-Overview.htm?Highlight=manager#Test-Messages). Try-Me is based on JavaScript making use of the WebSockets API for messaging at port 8008.
+An easy first test is using the [Broker Manager's built-in Try-Me tool](https://docs.solace.com/Admin/Broker-Manager/PubSub-Manager-Overview.htm?Highlight=manager#Test-Messages). Try-Me is based on JavaScript making use of the WebSockets API for messaging at port 8008.
 
 To test data traffic using other supported APIs, visit the Solace Developer Portal [APIs & Protocols](https://www.solace.dev/ ). Under each option there is a Publish/Subscribe tutorial that will help you get started and provide the specific default port to use.
 
@@ -1337,9 +1337,9 @@ deployments.
 
 #### Viewing events
 
-Kubernetes collects [all events for a cluster in one pool](https://pwittrock.github.io/docs/tasks/debug-application-cluster/events-stackdriver). This includes events related to the Solace Event Broker deployment.
+Kubernetes collects [all events for a cluster in one pool](https://pwittrock.github.io/docs/tasks/debug-application-cluster/events-stackdriver). This includes events related to the event broker deployment.
 
-It is recommended to watch events when creating or upgrading a Solace Event Broker deployment. Events clear after about an hour. You can query all available events:
+It is recommended to watch events when creating or upgrading a event broker deployment. Events clear after about an hour. You can query all available events:
 
 ```sh
 kubectl get events -w # use -w to watch live
@@ -1355,7 +1355,7 @@ If pods stay in pending state and `kubectl describe pods` reveals there are not 
 
 Pods might also stay in pending state because [storage requirements](#storage) cannot be met. Check `kubectl get pv,pvc`. PVCs and PVs should be in bound state and if not then use `kubectl describe pvc` for any issues.
 
-Unless otherwise specified, a default storage class must be available for default Solace Event Broker deployment configuration.
+Unless otherwise specified, a default storage class must be available for default event broker deployment configuration.
 ```bash
 kubectl get storageclasses
 ```
@@ -1470,7 +1470,7 @@ In this case the deployment can be reinstalled and continue from the point befor
 
 ### Install Operator
 
-There are two recommended options to acquire the Solace Event Broker Software Operator:
+There are two recommended options to acquire the Solace Event Broker Operator:
 * Operator Lifecycle Manager (OLM)
 * Command Line direct install
 
@@ -1478,13 +1478,13 @@ There are two recommended options to acquire the Solace Event Broker Software Op
 
 The Operator Lifecycle Manager (OLM) tool can be used to install, update, and manage the lifecycle of community operators available from [OperatorHub](https://operatorhub.io).
 
-Follow the steps from [OperatorHub](https://operatorhub.io/operator/pubsubplus-eventbroker-operator) to setup OLM and to install the Solace Event Broker Software Operator. Click on the Install button to see the detailed instructions.
+Follow the steps from [OperatorHub](https://operatorhub.io/operator/pubsubplus-eventbroker-operator) to setup OLM and to install the Solace Event Broker Operator. Click on the Install button to see the detailed instructions.
 
 The default namespace is `operators` for operators installed from OperatorHub.
 
 #### From Command Line
 
-Use the `deploy.yaml` from the [Solace Event Broker Software Operator GitHub project](https://github.com/SolaceProducts/pubsubplus-kubernetes-quickstart). It includes a collection of manifests for all the Kubernetes resources that must be created.
+Use the `deploy.yaml` from the [Solace Event Broker Operator GitHub project](https://github.com/SolaceProducts/pubsubplus-kubernetes-quickstart). It includes a collection of manifests for all the Kubernetes resources that must be created.
 
 The following example creates a default deployment. Edit the `deploy.yaml` before applying to customize options:
 ```sh
@@ -1545,13 +1545,13 @@ A given version of the Operator has a dependency on the PubSubPlusEventBroker Cu
 
 ##### Upgrading the Operator only
 
-You can use OLM to manage installing new versions of the Operator as they become available. The default install of the Solace Event Broker Software Operator is set to perform automatic updates. This can be changed to `Manual` by editing the broker subscription in the `operators` namespace.
+You can use OLM to manage installing new versions of the Operator as they become available. The default install of the Solace Event Broker Operator is set to perform automatic updates. This can be changed to `Manual` by editing the broker subscription in the `operators` namespace.
 
 #### Upgrade CRD and Operator
 
 OLM automatically manages the CRD and Operator updates.
 
-A direct installation requires taking `deploy.yaml` from the correctly tagged version of the [Solace Event Broker Software Operator GitHub project](https://github.com/SolaceProducts/pubsubplus-kubernetes-quickstart), because it includes the corresponding version of the CRD.
+A direct installation requires taking `deploy.yaml` from the correctly tagged version of the [Solace Event Broker Operator GitHub project](https://github.com/SolaceProducts/pubsubplus-kubernetes-quickstart), because it includes the corresponding version of the CRD.
 
 >Note: Although the goal is to keep the CRD API versions backwards compatible, it might become necessary to introduce a new API version. In that case, detailed upgrade instructions will be provided in the Release Notes.
 
