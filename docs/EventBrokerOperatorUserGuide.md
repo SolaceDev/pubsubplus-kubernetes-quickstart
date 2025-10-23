@@ -12,7 +12,7 @@ This guide is focused on deploying the event broker using the Operator, which is
 
 __Contents:__
 
-- [Solace Event Broker Operator User Guide](#solace-event-broker-operator-user-guide)
+- [Solace Event Broker Operator User Guide](#solace-event-broker-software-operator-user-guide)
   - [The Solace Event Broker Software](#the-solace-event-broker-software)
   - [Overview](#overview)
   - [Supported Kubernetes Environments](#supported-kubernetes-environments)
@@ -330,7 +330,7 @@ To activate, set `spec.developer` to `true`.
 
 ### Storage
 
-The [Solace deployment uses disk storage](https://docs.solace.com/Software-Broker/Configuring-Storage.htm) for logging, configuration, guaranteed messaging, and storing diagnostic and other information, allocated from Kubernetes volumes.
+The [Solace Event Broker deployment uses disk storage](https://docs.solace.com/Software-Broker/Configuring-Storage.htm) for logging, configuration, guaranteed messaging, and storing diagnostic and other information, allocated from Kubernetes volumes.
 
 For a given set of [scaling](#vertical-scaling), use the [Solace online System Resource Calculator](https://docs.solace.com/Admin-Ref/Resource-Calculator/pubsubplus-resource-calculator.html) to determine the required storage size. 
 
@@ -1339,7 +1339,7 @@ deployments.
 
 Kubernetes collects [all events for a cluster in one pool](https://pwittrock.github.io/docs/tasks/debug-application-cluster/events-stackdriver). This includes events related to the Solace Event Broker deployment.
 
-It is recommended to watch events when creating or upgrading a Solace deployment. Events clear after about an hour. You can query all available events:
+It is recommended to watch events when creating or upgrading a Solace Event Broker deployment. Events clear after about an hour. You can query all available events:
 
 ```sh
 kubectl get events -w # use -w to watch live

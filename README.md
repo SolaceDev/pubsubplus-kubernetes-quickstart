@@ -7,7 +7,7 @@ The Solace Event Broker Software Operator (or simply the Operator) is a Kubernet
 [Solace Platform](https://solace.com/products/platform/) is a complete event streaming and management platform for the real-time enterprise. The [Solace Event Broker Software](https://solace.com/products/event-broker/software/) efficiently streams event-driven information between applications, IoT devices, and user interfaces running in the cloud, on-premises, and in hybrid environments using open APIs and protocols like AMQP, JMS, MQTT, REST and WebSocket. It can be installed into a variety of public and private clouds, PaaS, and on-premises environments. Event brokers in multiple locations can be linked together in an [Event Mesh](https://solace.com/what-is-an-event-mesh/) to dynamically share events across the distributed enterprise.
 
 __Contents:__
-- [Solace Event Broker Operator Quick Start](#solace-event-broker-operator-quick-start)
+- [Solace Event Broker Operator Quick Start](#solace-event-broker-software-operator-quick-start)
   - [Overview](#overview)  
   - [How to deploy the Solace Event Broker Software onto Kubernetes using the Operator](#how-to-deploy-the-solace-event-broker-software-onto-kubernetes-using-the-operator)
     - [1. Get a Kubernetes environment](#1-get-a-kubernetes-environment)
