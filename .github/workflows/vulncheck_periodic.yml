@@ -112,7 +112,7 @@ jobs:
           configFile: 'ci/whitesource/whitesource-agent.config'
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.30.0
         with:
           image-ref: ghcr.io/solacedev/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
           format: 'sarif'
@@ -127,7 +127,7 @@ jobs:
             trivy-results.sarif
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.30.0
         with:
           image-ref: ghcr.io/solacedev/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
           format: 'sarif'
