@@ -503,6 +503,18 @@ func (r *PubSubPlusEventBrokerReconciler) Reconcile(ctx context.Context, req ctr
 		}
 	}
 
+	// Migrate legacy resourceVersion-format TLS annotations (Operator <= 1.4.0) in place while they
+	// still provably reflect the current secret contents, avoiding a one-time restart on the first
+	// secret rewrite after Operator upgrade
+	stssForTlsMigration := []*appsv1.StatefulSet{stsP}
+	if haDeployment {
+		stssForTlsMigration = append(stssForTlsMigration, stsB, stsM)
+	}
+	if err := r.migrateLegacyTlsAnnotations(ctx, pubsubpluseventbroker, stssForTlsMigration, tlsSecretHash, tlsSecretResourceVersion); err != nil {
+		r.recordErrorState(ctx, log, pubsubpluseventbroker, err, ResourceErrorReason, "Failed to migrate TLS secret annotations")
+		return ctrl.Result{}, err
+	}
+
 	// Check and address if statefulsets require update
 	if haDeployment {
 		// Monitor

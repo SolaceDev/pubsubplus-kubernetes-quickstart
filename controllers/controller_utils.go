@@ -86,6 +86,45 @@ func tlsSecretUpToDate(recorded string, expectedTlsSecretHash string, legacyReso
 		(legacyResourceVersion != "" && recorded == legacyResourceVersion)
 }
 
+func needsTlsAnnotationMigration(recorded string, contentHash string, currentResourceVersion string) bool {
+	return contentHash != "" && recorded != "" && recorded != contentHash && recorded == currentResourceVersion
+}
+
+func (r *PubSubPlusEventBrokerReconciler) migrateLegacyTlsAnnotations(ctx context.Context, m *eventbrokerv1beta1.PubSubPlusEventBroker, stss []*appsv1.StatefulSet, contentHash string, currentResourceVersion string) error {
+	if contentHash == "" {
+		return nil
+	}
+	for _, sts := range stss {
+		if sts == nil {
+			continue
+		}
+		if needsTlsAnnotationMigration(sts.Spec.Template.ObjectMeta.Annotations[tlsSecretSignatureAnnotationName], contentHash, currentResourceVersion) {
+			sts.Spec.Template.ObjectMeta.Annotations[tlsSecretSignatureAnnotationName] = contentHash
+			if err := r.Update(ctx, sts); err != nil {
+				return err
+			}
+		}
+	}
+	podList := &corev1.PodList{}
+	listOpts := []client.ListOption{
+		client.InNamespace(m.Namespace),
+		client.MatchingLabels(getDiscoveryServiceSelector(m.Name)),
+	}
+	if err := r.List(ctx, podList, listOpts...); err != nil {
+		return err
+	}
+	for i := range podList.Items {
+		pod := &podList.Items[i]
+		if needsTlsAnnotationMigration(pod.ObjectMeta.Annotations[tlsSecretSignatureAnnotationName], contentHash, currentResourceVersion) {
+			pod.ObjectMeta.Annotations[tlsSecretSignatureAnnotationName] = contentHash
+			if err := r.Update(ctx, pod); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 func brokerSpecHash(s eventbrokerv1beta1.EventBrokerSpec) string {
 	brokerSpecSubset := s.DeepCopy()
 	// Mask anything that is not relevant to the StatefulSet / broker Pods
