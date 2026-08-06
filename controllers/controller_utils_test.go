@@ -54,7 +54,6 @@ func testBrokerWithTls(namespace string, tlsEnabled bool, tlsSecretName string) 
 	}
 }
 
-// Regression test for the core bug: the hash must depend only on the secret contents, not metadata.
 func TestSecretDataHashStableAcrossMetadataChanges(t *testing.T) {
 	data := map[string][]byte{
 		"tls.crt": []byte("dummy-cert"),
