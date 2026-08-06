@@ -24,6 +24,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
@@ -179,6 +180,135 @@ func TestTlsSecretUpToDate(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestNeedsTlsAnnotationMigration(t *testing.T) {
+	tests := []struct {
+		name                   string
+		recorded               string
+		contentHash            string
+		currentResourceVersion string
+		want                   bool
+	}{
+		{"legacy annotation matching current RV migrates", "1000", "hash-abc", "1000", true},
+		{"already hash format does not migrate", "hash-abc", "hash-abc", "1000", false},
+		{"stale RV does not migrate (content unknowable)", "900", "hash-abc", "1005", false},
+		{"empty content hash does not migrate", "1000", "", "1000", false},
+		{"empty recorded annotation does not migrate", "", "hash-abc", "1000", false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := needsTlsAnnotationMigration(tt.recorded, tt.contentHash, tt.currentResourceVersion); got != tt.want {
+				t.Errorf("needsTlsAnnotationMigration(%q, %q, %q) = %v, want %v",
+					tt.recorded, tt.contentHash, tt.currentResourceVersion, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestMigrateLegacyTlsAnnotations(t *testing.T) {
+	const (
+		legacyRV    = "1000"
+		contentHash = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+	)
+	broker := testBrokerWithTls("default", true, "my-tls-secret")
+
+	makeSts := func(tlsAnnotation string) *appsv1.StatefulSet {
+		return &appsv1.StatefulSet{
+			ObjectMeta: metav1.ObjectMeta{Name: broker.Name + "-p", Namespace: broker.Namespace},
+			Spec: appsv1.StatefulSetSpec{
+				Template: corev1.PodTemplateSpec{
+					ObjectMeta: metav1.ObjectMeta{
+						Annotations: map[string]string{
+							brokerSpecSignatureAnnotationName: "spec1",
+							tlsSecretSignatureAnnotationName:  tlsAnnotation,
+						},
+					},
+				},
+			},
+		}
+	}
+	makePod := func(name, tlsAnnotation string) *corev1.Pod {
+		return &corev1.Pod{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      name,
+				Namespace: broker.Namespace,
+				UID:       types.UID("uid-" + name),
+				Labels:    getPodLabels(broker.Name, "message-routing-primary"),
+				Annotations: map[string]string{
+					brokerSpecSignatureAnnotationName: "spec1",
+					tlsSecretSignatureAnnotationName:  tlsAnnotation,
+				},
+			},
+		}
+	}
+
+	t.Run("restamps legacy annotations in place without recreating pods", func(t *testing.T) {
+		sts := makeSts(legacyRV)
+		pod := makePod("broker-pod-p-0", legacyRV)
+		r := &PubSubPlusEventBrokerReconciler{
+			Client: fake.NewClientBuilder().WithObjects(sts, pod).Build(),
+		}
+		ctx := context.Background()
+
+		if err := r.migrateLegacyTlsAnnotations(ctx, broker, []*appsv1.StatefulSet{sts}, contentHash, legacyRV); err != nil {
+			t.Fatalf("migrateLegacyTlsAnnotations returned error: %v", err)
+		}
+
+		gotSts := &appsv1.StatefulSet{}
+		if err := r.Get(ctx, types.NamespacedName{Name: sts.Name, Namespace: sts.Namespace}, gotSts); err != nil {
+			t.Fatal(err)
+		}
+		if got := gotSts.Spec.Template.ObjectMeta.Annotations[tlsSecretSignatureAnnotationName]; got != contentHash {
+			t.Errorf("sts template annotation = %q, want content hash", got)
+		}
+
+		gotPod := &corev1.Pod{}
+		if err := r.Get(ctx, types.NamespacedName{Name: pod.Name, Namespace: pod.Namespace}, gotPod); err != nil {
+			t.Fatal(err)
+		}
+		if got := gotPod.ObjectMeta.Annotations[tlsSecretSignatureAnnotationName]; got != contentHash {
+			t.Errorf("pod annotation = %q, want content hash", got)
+		}
+		if gotPod.UID != pod.UID {
+			t.Error("pod UID changed — migration must not recreate pods")
+		}
+	})
+
+	t.Run("does not touch pods with stale legacy annotation", func(t *testing.T) {
+		sts := makeSts("900")
+		pod := makePod("broker-pod-p-0", "900")
+		r := &PubSubPlusEventBrokerReconciler{
+			Client: fake.NewClientBuilder().WithObjects(sts, pod).Build(),
+		}
+		ctx := context.Background()
+
+		if err := r.migrateLegacyTlsAnnotations(ctx, broker, []*appsv1.StatefulSet{sts}, contentHash, "1005"); err != nil {
+			t.Fatalf("migrateLegacyTlsAnnotations returned error: %v", err)
+		}
+
+		gotPod := &corev1.Pod{}
+		if err := r.Get(ctx, types.NamespacedName{Name: pod.Name, Namespace: pod.Namespace}, gotPod); err != nil {
+			t.Fatal(err)
+		}
+		if got := gotPod.ObjectMeta.Annotations[tlsSecretSignatureAnnotationName]; got != "900" {
+			t.Errorf("stale pod annotation was modified to %q — must be left for the restart path", got)
+		}
+	})
+
+	t.Run("no-op when content hash is empty", func(t *testing.T) {
+		sts := makeSts(legacyRV)
+		pod := makePod("broker-pod-p-0", legacyRV)
+		r := &PubSubPlusEventBrokerReconciler{
+			Client: fake.NewClientBuilder().WithObjects(sts, pod).Build(),
+		}
+		if err := r.migrateLegacyTlsAnnotations(context.Background(), broker, []*appsv1.StatefulSet{sts}, "", legacyRV); err != nil {
+			t.Fatalf("migrateLegacyTlsAnnotations returned error: %v", err)
+		}
+		if sts.Spec.Template.ObjectMeta.Annotations[tlsSecretSignatureAnnotationName] != legacyRV {
+			t.Error("sts annotation modified despite empty content hash")
+		}
+	})
 }
 
 func TestBrokerPodOutdated(t *testing.T) {

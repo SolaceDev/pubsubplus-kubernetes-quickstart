@@ -19,27 +19,27 @@ jobs:
           echo "TESTNAMESPACE=op-test-fnha-$(date +%s)" >> $GITHUB_ENV
 
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
 
       - id: 'auth'
         name: 'Authenticate to Google Cloud'
-        uses: 'google-github-actions/auth@v1.0.0'
+        uses: google-github-actions/auth@ef5d53e30bbcd8d0836f4288f5e50ff3e086997d # v1.0.0
         with:
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
           workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           access_token_lifetime: 600s
 
       - name: Use the GKE Autopilot test cluster
-        uses: 'google-github-actions/get-gke-credentials@v1.0.0'
+        uses: google-github-actions/get-gke-credentials@ef10cc0013c465a6ea0b8e36c24064576ec25f87 # v1.0.0
         with:
           cluster_name: 'dev-integrationtesting'
           location: 'us-central1'
 
       - name: Login to Github Packages
-        uses: docker/login-action@v2
+        uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc # v2
         with:
           registry: ghcr.io
           username: ${{ github.actor }}

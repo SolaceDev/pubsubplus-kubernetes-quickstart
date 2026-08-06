@@ -23,18 +23,18 @@ jobs:
       id-token: write
     steps:
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version: "1.24.2"
 
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
 
       - name: Login to Github Packages
-        uses: docker/login-action@v2
+        uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc # v2
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -42,14 +42,14 @@ jobs:
 
       - id: 'auth'
         name: 'Authenticate to Google Cloud'
-        uses: 'google-github-actions/auth@v1.0.0'
+        uses: google-github-actions/auth@ef5d53e30bbcd8d0836f4288f5e50ff3e086997d # v1.0.0
         with:
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
           workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           access_token_lifetime: 600s
 
       - name: Use the GKE Autopilot test cluster
-        uses: 'google-github-actions/get-gke-credentials@v1.0.0'
+        uses: google-github-actions/get-gke-credentials@ef10cc0013c465a6ea0b8e36c24064576ec25f87 # v1.0.0
         with:
           cluster_name: 'dev-integrationtesting'
           location: 'us-central1'
@@ -70,7 +70,7 @@ jobs:
 
       - name: Upload Test coverage Reports
         if: ${{ startsWith(github.ref_name, 'dev1.') && (github.ref_name != 'main') }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: code-coverage-report
           path: |
@@ -79,13 +79,13 @@ jobs:
 
       - name: Go Coverage Badge
         if: ${{ startsWith(github.ref_name, 'dev1.') && (github.ref_name != 'main') }}
-        uses: tj-actions/coverage-badge-go@v2
+        uses: tj-actions/coverage-badge-go@84540b9f82b4f569ac9f248cf6f2893ac3cc4791 # v2
         with:
           filename: ./reports/coverage.out
 
       - name: Verify Changed files
         if: ${{ startsWith(github.ref_name, 'dev1.') && (github.ref_name != 'main') }}
-        uses: tj-actions/verify-changed-files@v12
+        uses: tj-actions/verify-changed-files@a3391b5a01114c49c3a8d55181a9ff4c99bf0db7 # v12
         id: verify-changed-files
         with:
           files: README.md
@@ -107,11 +107,11 @@ jobs:
       - name: Set up Docker Buildx
         id: buildx
         if: ${{ startsWith(github.ref_name, 'dev1.') && (github.ref_name != 'main') }}
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@885d1462b80bc1c1c7f0b00334ad271f09369c55 # v2
 
       - name: Checkout SolaceDev/maas-build-actions
         if: ${{ startsWith(github.ref_name, 'dev1.') && (github.ref_name != 'main') }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           repository: SolaceDev/maas-build-actions
           ref: refs/heads/master
@@ -122,7 +122,7 @@ jobs:
       - name: Retrieve google container registry secrets
         id: docker_registry_secrets
         if: ${{ startsWith(github.ref_name, 'dev1.') && (github.ref_name != 'main') }}
-        uses: hashicorp/vault-action@v2.5.0
+        uses: hashicorp/vault-action@130d1f5f4fe645bb6c83e4225c04d64cfb62de6e # v2.5.0
         with:
           url: "${{ env.VAULT_ADDR }}"
           role: github-docker-secrets-read-role
@@ -147,7 +147,7 @@ jobs:
           password: ${{ steps.docker_registry_secrets.outputs.GCP_DEV_SERVICE_ACCOUNT }}
 
       - name: Build image and push Google Container Registry
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a # v2
         if: ${{ startsWith(github.ref_name, 'dev1.') && (github.ref_name != 'main') }}
         with:
           context: ./
@@ -174,7 +174,7 @@ jobs:
 
 
       - name: Run Whitesource Action
-        uses: SolaceDev/Mend-Scan-GHA@v1.0.0
+        uses: SolaceDev/Mend-Scan-GHA@eee5b469b9fa9298d8dd02a92e42525ff015c3da # v1.0.0
         if: ${{ startsWith(github.ref_name, 'dev1.') && (github.ref_name != 'main') }}
         with:
           wssURL: https://saas.whitesourcesoftware.com/agent
@@ -184,7 +184,7 @@ jobs:
           configFile: 'ci/whitesource/whitesource-agent.config'
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.30.0
+        uses: aquasecurity/trivy-action@6c175e9c4083a92bbca2f9724c8a5e33bc2d97a5 # v0.30.0
         if: ${{ startsWith(github.ref_name, 'dev1.') && (github.ref_name != 'main') }}
         with:
           image-ref: ghcr.io/solacedev/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
@@ -194,14 +194,14 @@ jobs:
 
       - name: Uploads Trivy Scan Reports
         if: ${{ startsWith(github.ref_name, 'dev1.') && (github.ref_name != 'main') }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: trivy-results
           path: |
             trivy-results.sarif
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.30.0
+        uses: aquasecurity/trivy-action@6c175e9c4083a92bbca2f9724c8a5e33bc2d97a5 # v0.30.0
         if: ${{ startsWith(github.ref_name, 'dev1.') && (github.ref_name != 'main') }}
         with:
           image-ref: ghcr.io/solacedev/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
@@ -211,7 +211,7 @@ jobs:
 
       - name: Uploads Trivy Scan Reports
         if: ${{ startsWith(github.ref_name, 'dev1.') && (github.ref_name != 'main') }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           path: |
             trivy-results.sarif
