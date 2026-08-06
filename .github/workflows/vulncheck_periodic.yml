@@ -102,15 +102,6 @@ jobs:
       - name: Build image and push GitHub Container Registry
         run: make docker-push
 
-      - name: Run Whitesource Action
-        uses: SolaceDev/Mend-Scan-GHA@eee5b469b9fa9298d8dd02a92e42525ff015c3da # v1.0.0
-        with:
-          wssURL: https://saas.whitesourcesoftware.com/agent
-          apiKey: ${{ secrets.WSS_API_KEY }}
-          productName: 'pubsubplus-kubernetes-operator'
-          projectName: 'pubsubplus-kubernetes-operator'
-          configFile: 'ci/whitesource/whitesource-agent.config'
-
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@6c175e9c4083a92bbca2f9724c8a5e33bc2d97a5 # v0.30.0
         with:
