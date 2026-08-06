@@ -436,7 +436,7 @@ func (r *PubSubPlusEventBrokerReconciler) Reconcile(ctx context.Context, req ctr
 	// prep variables to be used next
 	automatedPodUpdateStrategy := (pubsubpluseventbroker.Spec.UpdateStrategy != eventbrokerv1beta1.ManualPodRestartUpdateStrategy)
 	brokerSpecHash := brokerSpecHash(pubsubpluseventbroker.Spec)
-	tlsSecretHash := r.tlsSecretHash(ctx, pubsubpluseventbroker)
+	tlsSecretHash, tlsSecretResourceVersion := r.tlsSecretHash(ctx, pubsubpluseventbroker)
 	// Check if Primary StatefulSet already exists, if not create a new one
 	stsP = &appsv1.StatefulSet{}
 	stsPName := getStatefulsetName(pubsubpluseventbroker.Name, "p")
@@ -506,7 +506,7 @@ func (r *PubSubPlusEventBrokerReconciler) Reconcile(ctx context.Context, req ctr
 	// Check and address if statefulsets require update
 	if haDeployment {
 		// Monitor
-		if brokerStsOutdated(stsM, brokerSpecHash, tlsSecretHash) {
+		if brokerStsOutdated(stsM, brokerSpecHash, tlsSecretHash, tlsSecretResourceVersion) {
 			log.Info("Updating existing Monitor StatefulSet", "StatefulSet.Namespace", stsM.Namespace, "StatefulSet.Name", stsM.Name)
 			r.updateStatefulsetForEventBroker(stsM, ctx, pubsubpluseventbroker, sa, adminSecret, preSharedAuthKeySecret, monitoringSecret)
 			err = r.Update(ctx, stsM)
@@ -519,7 +519,7 @@ func (r *PubSubPlusEventBrokerReconciler) Reconcile(ctx context.Context, req ctr
 		}
 		log.V(1).Info("Detected up-to-date existing Monitor StatefulSet", " StatefulSet.Name", stsM.Name)
 		// Backup
-		if brokerStsOutdated(stsB, brokerSpecHash, tlsSecretHash) {
+		if brokerStsOutdated(stsB, brokerSpecHash, tlsSecretHash, tlsSecretResourceVersion) {
 			log.Info("Updating existing Backup StatefulSet", "StatefulSet.Namespace", stsB.Namespace, "StatefulSet.Name", stsB.Name)
 			r.updateStatefulsetForEventBroker(stsB, ctx, pubsubpluseventbroker, sa, adminSecret, preSharedAuthKeySecret, monitoringSecret)
 			err = r.Update(ctx, stsB)
@@ -533,7 +533,7 @@ func (r *PubSubPlusEventBrokerReconciler) Reconcile(ctx context.Context, req ctr
 		log.V(1).Info("Detected up-to-date existing Backup StatefulSet", " StatefulSet.Name", stsB.Name)
 	}
 	// Primary (includes non-HA case)
-	if brokerStsOutdated(stsP, brokerSpecHash, tlsSecretHash) {
+	if brokerStsOutdated(stsP, brokerSpecHash, tlsSecretHash, tlsSecretResourceVersion) {
 		log.Info("Updating existing Primary StatefulSet", "StatefulSet.Namespace", stsP.Namespace, "StatefulSet.Name", stsP.Name)
 		r.updateStatefulsetForEventBroker(stsP, ctx, pubsubpluseventbroker, sa, adminSecret, preSharedAuthKeySecret, monitoringSecret)
 		err = r.Update(ctx, stsP)
@@ -587,7 +587,7 @@ func (r *PubSubPlusEventBrokerReconciler) Reconcile(ctx context.Context, req ctr
 				r.recordErrorState(ctx, log, pubsubpluseventbroker, err, ResourceErrorReason, "Failed to list Monitor pod", "PubSubPlusEventBroker.Namespace", pubsubpluseventbroker.Namespace, "PubSubPlusEventBroker.Name", pubsubpluseventbroker.Name)
 				return ctrl.Result{}, err
 			}
-			if brokerPodOutdated(brokerPod, brokerSpecHash, tlsSecretHash) {
+			if brokerPodOutdated(brokerPod, brokerSpecHash, tlsSecretHash, tlsSecretResourceVersion) {
 				if brokerPod.ObjectMeta.DeletionTimestamp == nil {
 					// Restart the Monitor pod to sync with its Statefulset config
 					log.Info("Monitor pod outdated, restarting to reflect latest updates", "Pod.Namespace", &brokerPod.Namespace, "Pod.Name", &brokerPod.Name)
@@ -607,7 +607,7 @@ func (r *PubSubPlusEventBrokerReconciler) Reconcile(ctx context.Context, req ctr
 				// Just requeue
 				return ctrl.Result{RequeueAfter: time.Duration(5) * time.Second}, nil
 			}
-			if brokerPodOutdated(brokerPod, brokerSpecHash, tlsSecretHash) {
+			if brokerPodOutdated(brokerPod, brokerSpecHash, tlsSecretHash, tlsSecretResourceVersion) {
 				if brokerPod.ObjectMeta.DeletionTimestamp == nil {
 					// Restart the Standby pod to sync with its Statefulset config
 					log.Info("Standby pod outdated, restarting to reflect latest updates", "Pod.Namespace", &brokerPod.Namespace, "Pod.Name", &brokerPod.Name)
@@ -634,7 +634,7 @@ func (r *PubSubPlusEventBrokerReconciler) Reconcile(ctx context.Context, req ctr
 				return ctrl.Result{RequeueAfter: time.Duration(5) * time.Second}, nil
 			}
 		}
-		if brokerPodOutdated(brokerPod, brokerSpecHash, tlsSecretHash) {
+		if brokerPodOutdated(brokerPod, brokerSpecHash, tlsSecretHash, tlsSecretResourceVersion) {
 			if brokerPod.ObjectMeta.DeletionTimestamp == nil {
 				// Restart the Active Pod to sync with its Statefulset config
 				log.Info("Active pod outdated, restarting to reflect latest updates", "Pod.Namespace", &brokerPod.Namespace, "Pod.Name", &brokerPod.Name)
@@ -818,9 +818,10 @@ func (r *PubSubPlusEventBrokerReconciler) SetupWithManager(mgr ctrl.Manager) err
 	// Need to watch non-managed resources
 	// To understand following code refer to https://kubebuilder.io/reference/watching-resources/externally-managed.html#allow-for-linking-of-resources-in-the-spec
 	if err := mgr.GetFieldIndexer().IndexField(context.Background(), &eventbrokerv1beta1.PubSubPlusEventBroker{}, dependencyTlsSecretField, func(rawObj client.Object) []string {
-		// Extract the secret name from the EventBroker Spec, if one is provided
+		// Extract the secret name from the EventBroker Spec, if TLS is enabled and one is provided.
+		// The Enabled check matters because serverTlsConfigSecret has a CRD default name.
 		eventBroker := rawObj.(*eventbrokerv1beta1.PubSubPlusEventBroker)
-		if eventBroker.Spec.BrokerTLS.ServerTLsConfigSecret == "" {
+		if !eventBroker.Spec.BrokerTLS.Enabled || eventBroker.Spec.BrokerTLS.ServerTLsConfigSecret == "" {
 			return nil
 		}
 		return []string{eventBroker.Spec.BrokerTLS.ServerTLsConfigSecret}
