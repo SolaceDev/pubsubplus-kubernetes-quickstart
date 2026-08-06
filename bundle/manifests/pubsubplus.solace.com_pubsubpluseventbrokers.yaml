@@ -56,7 +56,7 @@ spec:
                   readOnlyRootFilesystem:
                     default: false
                     description: 'Specifies if the root filesystem of the PubSubPlusEventBroker
-                    should be read-only. Note: This will only work for versions
+                      should be read-only. Note: This will only work for versions
                       10.9 and above.'
                     type: boolean
                   runAsGroup:
