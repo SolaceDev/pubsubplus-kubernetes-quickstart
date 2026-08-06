@@ -583,7 +583,7 @@ Important: It is not possible to update an existing deployment (created without 
 
 In the event the server key or certificate must be rotated the TLS Config Secret must be updated or recreated with the new contents. Alternatively a new secret can be created and the broker spec can be updated with that secret's name.
 
-If you are reusing an existing TLS secret, the new contents are automatically mounted on the broker containers. The Operator is already watching the configured secret for any changes and automatically initiates a rolling pod restart to take effect. Deleting the existing TLS secret does not result in immediate action, but broker pods will not start if the specified TLS secret does not exist.
+If you are reusing an existing TLS secret, the new contents are automatically mounted on the broker containers. The Operator is already watching the configured secret for any changes and automatically initiates a rolling pod restart to take effect. Change detection is based on a hash of the secret's contents, so rewriting the secret with unchanged contents — for example through `kubectl replace`, a GitOps re-apply, or etcd encryption key rotation — does not restart broker pods. Deleting the existing TLS secret does not result in immediate action, but broker pods will not start if the specified TLS secret does not exist.
 
 > Note: A pod restart results in provisioning the server certificate from the secret again, so it reverts back from any other server certificate that might have been provisioned on the broker through another mechanism.
 
