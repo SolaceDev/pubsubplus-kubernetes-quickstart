@@ -174,7 +174,7 @@ jobs:
 
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@6c175e9c4083a92bbca2f9724c8a5e33bc2d97a5 # v0.30.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         if: ${{ startsWith(github.ref_name, 'dev1.') && (github.ref_name != 'main') }}
         with:
           image-ref: ghcr.io/solacedev/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
@@ -191,7 +191,7 @@ jobs:
             trivy-results.sarif
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@6c175e9c4083a92bbca2f9724c8a5e33bc2d97a5 # v0.30.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         if: ${{ startsWith(github.ref_name, 'dev1.') && (github.ref_name != 'main') }}
         with:
           image-ref: ghcr.io/solacedev/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
