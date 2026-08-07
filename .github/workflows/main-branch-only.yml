@@ -9,25 +9,50 @@ jobs:
   test:
     name: Deploy Operator then deploy broker
     runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
     steps:
+      - name: Set env
+        run: |
+          echo "TESTNAMESPACE=main-branch-$(date +%s)" >> $GITHUB_ENV
+
       - name: Check out code
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - name: Create k8s Kind Cluster
-        uses: helm/kind-action@d08cf6ff1575077dee99962540d77ce91c62387d # v1.3.0
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: google-github-actions/auth@ef5d53e30bbcd8d0836f4288f5e50ff3e086997d # v1.0.0
+        with:
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          access_token_lifetime: 600s
+
+      - name: Use the GKE Autopilot test cluster
+        uses: google-github-actions/get-gke-credentials@ef10cc0013c465a6ea0b8e36c24064576ec25f87 # v1.0.0
+        with:
+          cluster_name: 'dev-integrationtesting'
+          location: 'us-central1'
 
       - name: Testing operator deployment
         run: |
           kubectl cluster-info
-          kubectl get pods -n kube-system
           echo "current-context:" $(kubectl config current-context)
-          echo "environment-kubeconfig:" ${KUBECONFIG}
-          kubectl apply -f deploy/deploy.yaml
-          kubectl rollout status deployment pubsubplus-eventbroker-operator -n pubsubplus-operator-system --timeout=30s
+          for i in {1..3}; do
+            kubectl apply -f deploy/deploy.yaml
+            kubectl rollout status deployment pubsubplus-eventbroker-operator -n pubsubplus-operator-system --timeout=240s
+            if [ $? -eq 0 ]; then
+              break
+            else
+              echo "Rollout status check failed, retrying in 20 seconds..."
+              sleep 20
+            fi
+          done
           kubectl get crd | grep eventbrokers
 
       - name: Deploy  and test broker - nonHA Minimal
         run: |
+          kubectl create ns $TESTNAMESPACE && kubectl config set-context --current --namespace=$TESTNAMESPACE
           echo "
           apiVersion: pubsubplus.solace.com/v1beta1
           kind: PubSubPlusEventBroker
@@ -38,7 +63,15 @@ jobs:
           # Then apply it
           kubectl apply -f developer.yaml | grep "test-broker created"
           sleep 25 ; kubectl get all
-          kubectl wait pods --selector app.kubernetes.io/instance=test-broker --for condition=Ready --timeout=120s
+          for i in {1..3}; do
+            kubectl wait pods --selector app.kubernetes.io/instance=test-broker --for condition=Ready --timeout=300s
+            if [ $? -eq 0 ]; then
+              break
+            else
+              echo "Waiting for pods failed, retrying in 15 seconds..."
+              sleep 15
+            fi
+          done
           kubectl get po --show-labels | grep test-broker | grep "1/1"
           kubectl get po --show-labels | grep test-broker | grep active=true
           kubectl get sts | grep test-broker
@@ -48,6 +81,8 @@ jobs:
           tar -xvf SDKPERF_C_LINUX64
           pubSubTools/sdkperf_c -cip=tcp://localhost:55555 -mn=1000 -mr=0 -ptl=t1 -stl=t1 | grep "Total Messages"
 
-      - name: Delete broker
+      - name: Delete broker deployment
+        if: always()
         run: |
-          kubectl delete eventbroker test-broker | grep deleted
+          kubectl delete eventbroker test-broker --ignore-not-found | grep deleted || true
+          kubectl delete ns $TESTNAMESPACE --ignore-not-found

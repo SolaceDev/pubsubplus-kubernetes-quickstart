@@ -6,7 +6,7 @@ on:
       - main
 
 env:
-  VERSION: 1.4.1
+  VERSION: 1.4.2
   IMAGE_NAME: pubsubplus-eventbroker-operator
   VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
   GCLOUD_PROJECT_ID_DEV: ${{ secrets.GCLOUD_PROJECT_ID }}
@@ -25,7 +25,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
-          go-version: "1.24.2"
+          go-version: "1.26.5"
 
       - name: Check out code
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
