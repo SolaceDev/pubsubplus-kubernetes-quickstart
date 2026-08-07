@@ -177,9 +177,10 @@ func (r *PubSubPlusEventBrokerReconciler) updateStatefulsetForEventBroker(sts *a
 		}
 	}
 
+	tlsSecretContentHash, _ := r.tlsSecretHash(ctx, m)
 	podAnnotations := map[string]string{
 		brokerSpecSignatureAnnotationName: brokerSpecHash(m.Spec),
-		tlsSecretSignatureAnnotationName:  r.tlsSecretHash(ctx, m),
+		tlsSecretSignatureAnnotationName:  tlsSecretContentHash,
 	}
 	if len(m.Spec.PodAnnotations) > 0 {
 		for k, v := range m.Spec.PodAnnotations {

@@ -19,17 +19,19 @@ package controllers
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"embed"
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
-	eventbrokerv1beta1 "github.com/SolaceProducts/pubsubplus-operator/api/v1beta1"
 	"hash/crc64"
+	"strconv"
+
+	eventbrokerv1beta1 "github.com/SolaceProducts/pubsubplus-operator/api/v1beta1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"strconv"
 )
 
 var (
@@ -54,18 +56,73 @@ func (r *PubSubPlusEventBrokerReconciler) getBrokerPod(ctx context.Context, m *e
 	return nil, fmt.Errorf("filtered broker pod list for broker role %d didn't return exactly one pod", brokerRole)
 }
 
-// Returns the TLS secret resourceVersion if it exists. If TLS is not configured or TLS secret not found it returns empty string
-func (r *PubSubPlusEventBrokerReconciler) tlsSecretHash(ctx context.Context, m *eventbrokerv1beta1.PubSubPlusEventBroker) string {
-	var tlsSecretVersion string = ""
-	if m.Spec.BrokerTLS.ServerTLsConfigSecret != "" {
-		secretName := m.Spec.BrokerTLS.ServerTLsConfigSecret
-		foundSecret := &corev1.Secret{}
-		err := r.Get(ctx, types.NamespacedName{Name: secretName, Namespace: m.Namespace}, foundSecret)
-		if err == nil {
-			tlsSecretVersion = foundSecret.ResourceVersion
+// Returns a hash of the TLS secret contents plus its resourceVersion (kept only for upgrade compatibility, see tlsSecretUpToDate).
+func (r *PubSubPlusEventBrokerReconciler) tlsSecretHash(ctx context.Context, m *eventbrokerv1beta1.PubSubPlusEventBroker) (contentHash string, resourceVersion string) {
+	if !m.Spec.BrokerTLS.Enabled || m.Spec.BrokerTLS.ServerTLsConfigSecret == "" {
+		return "", ""
+	}
+	foundSecret := &corev1.Secret{}
+	err := r.Get(ctx, types.NamespacedName{Name: m.Spec.BrokerTLS.ServerTLsConfigSecret, Namespace: m.Namespace}, foundSecret)
+	if err != nil {
+		return "", ""
+	}
+	return secretDataHash(foundSecret), foundSecret.ResourceVersion
+}
+
+func secretDataHash(secret *corev1.Secret) string {
+	serialized, err := json.Marshal(secret.Data)
+	if err != nil {
+		return ""
+	}
+	salted := fmt.Sprintf("%s/%s|%s", secret.Namespace, secret.Name, serialized)
+	return fmt.Sprintf("%x", sha256.Sum256([]byte(salted)))
+}
+
+func tlsSecretUpToDate(recorded string, expectedTlsSecretHash string, legacyResourceVersion string) bool {
+	if expectedTlsSecretHash == "" {
+		return true
+	}
+	return recorded == expectedTlsSecretHash ||
+		(legacyResourceVersion != "" && recorded == legacyResourceVersion)
+}
+
+func needsTlsAnnotationMigration(recorded string, contentHash string, currentResourceVersion string) bool {
+	return contentHash != "" && recorded != "" && recorded != contentHash && recorded == currentResourceVersion
+}
+
+func (r *PubSubPlusEventBrokerReconciler) migrateLegacyTlsAnnotations(ctx context.Context, m *eventbrokerv1beta1.PubSubPlusEventBroker, stss []*appsv1.StatefulSet, contentHash string, currentResourceVersion string) error {
+	if contentHash == "" {
+		return nil
+	}
+	for _, sts := range stss {
+		if sts == nil {
+			continue
+		}
+		if needsTlsAnnotationMigration(sts.Spec.Template.ObjectMeta.Annotations[tlsSecretSignatureAnnotationName], contentHash, currentResourceVersion) {
+			sts.Spec.Template.ObjectMeta.Annotations[tlsSecretSignatureAnnotationName] = contentHash
+			if err := r.Update(ctx, sts); err != nil {
+				return err
+			}
 		}
 	}
-	return tlsSecretVersion
+	podList := &corev1.PodList{}
+	listOpts := []client.ListOption{
+		client.InNamespace(m.Namespace),
+		client.MatchingLabels(getDiscoveryServiceSelector(m.Name)),
+	}
+	if err := r.List(ctx, podList, listOpts...); err != nil {
+		return err
+	}
+	for i := range podList.Items {
+		pod := &podList.Items[i]
+		if needsTlsAnnotationMigration(pod.ObjectMeta.Annotations[tlsSecretSignatureAnnotationName], contentHash, currentResourceVersion) {
+			pod.ObjectMeta.Annotations[tlsSecretSignatureAnnotationName] = contentHash
+			if err := r.Update(ctx, pod); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func brokerSpecHash(s eventbrokerv1beta1.EventBrokerSpec) string {
@@ -97,22 +154,18 @@ func brokerServiceOutdated(service *corev1.Service, expectedBrokerServiceHash st
 	return result
 }
 
-func brokerStsOutdated(sts *appsv1.StatefulSet, expectedBrokerSpecHash string, expectedTlsSecretHash string) bool {
-	result := sts.Spec.Template.ObjectMeta.Annotations[brokerSpecSignatureAnnotationName] != expectedBrokerSpecHash
-	// Ignore expectedTlsSecretHash if it is an empty string. This means the sts is not marked as outdated if the secret does not exist or has been deleted
-	if expectedTlsSecretHash != "" {
-		result = result || (sts.Spec.Template.ObjectMeta.Annotations[tlsSecretSignatureAnnotationName] != expectedTlsSecretHash)
+func brokerStsOutdated(sts *appsv1.StatefulSet, expectedBrokerSpecHash string, expectedTlsSecretHash string, legacyTlsSecretResourceVersion string) bool {
+	if sts.Spec.Template.ObjectMeta.Annotations[brokerSpecSignatureAnnotationName] != expectedBrokerSpecHash {
+		return true
 	}
-	return result
+	return !tlsSecretUpToDate(sts.Spec.Template.ObjectMeta.Annotations[tlsSecretSignatureAnnotationName], expectedTlsSecretHash, legacyTlsSecretResourceVersion)
 }
 
-func brokerPodOutdated(pod *corev1.Pod, expectedBrokerSpecHash string, expectedTlsSecretHash string) bool {
-	result := pod.ObjectMeta.Annotations[brokerSpecSignatureAnnotationName] != expectedBrokerSpecHash
-	// Ignore expectedTlsSecretHash if it is an empty string. This means the pod is not marked as outdated if the secret does not exist or has been deleted
-	if expectedTlsSecretHash != "" {
-		result = result || (pod.ObjectMeta.Annotations[tlsSecretSignatureAnnotationName] != expectedTlsSecretHash)
+func brokerPodOutdated(pod *corev1.Pod, expectedBrokerSpecHash string, expectedTlsSecretHash string, legacyTlsSecretResourceVersion string) bool {
+	if pod.ObjectMeta.Annotations[brokerSpecSignatureAnnotationName] != expectedBrokerSpecHash {
+		return true
 	}
-	return result
+	return !tlsSecretUpToDate(pod.ObjectMeta.Annotations[tlsSecretSignatureAnnotationName], expectedTlsSecretHash, legacyTlsSecretResourceVersion)
 }
 
 func brokerMonitoringOutdated(monitoring *appsv1.Deployment, expectedMonitoringSpecHash string) bool {
