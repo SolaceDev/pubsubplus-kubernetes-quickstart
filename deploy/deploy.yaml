@@ -1994,7 +1994,7 @@ spec:
         env:
         - name: WATCH_NAMESPACE
           value: ""
-        image: docker.io/solace/pubsubplus-eventbroker-operator:1.4.1
+        image: docker.io/solace/pubsubplus-eventbroker-operator:1.4.2
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
