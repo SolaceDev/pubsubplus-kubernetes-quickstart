@@ -392,7 +392,7 @@ var _ = Describe("Statefulset test", func() {
 									Tolerations: []corev1.Toleration{
 										{
 											Key:      "key1",
-											Operator: corev1.TolerationOperator("Equals"),
+											Operator: corev1.TolerationOpEqual,
 											Value:    "value1",
 											Effect:   corev1.TaintEffect("NoSchedule"),
 										},
