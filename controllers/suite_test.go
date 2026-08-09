@@ -31,6 +31,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"testing"
+	"time"
 	//+kubebuilder:scaffold:imports
 	//+kubebuilder:scaffold:imports
 )
@@ -78,6 +79,20 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 
 	//+kubebuilder:scaffold:scheme
+
+	By("cleaning up any stale PubSubPlusEventBroker resources left behind by a previous run")
+	cleanupClient, err := runtimeClient.New(cfg, runtimeClient.Options{Scheme: scheme.Scheme})
+	Expect(err).NotTo(HaveOccurred())
+	staleBrokers := &pubsubplus.PubSubPlusEventBrokerList{}
+	Expect(cleanupClient.List(ctx, staleBrokers, runtimeClient.InNamespace("default"))).To(Succeed())
+	for i := range staleBrokers.Items {
+		Expect(runtimeClient.IgnoreNotFound(cleanupClient.Delete(ctx, &staleBrokers.Items[i]))).To(Succeed())
+	}
+	Eventually(func() int {
+		remaining := &pubsubplus.PubSubPlusEventBrokerList{}
+		Expect(cleanupClient.List(ctx, remaining, runtimeClient.InNamespace("default"))).To(Succeed())
+		return len(remaining.Items)
+	}).WithTimeout(60 * time.Second).WithPolling(2 * time.Second).Should(Equal(0))
 
 	clientSet, err = kubernetes.NewForConfig(cfg)
 	Expect(err).NotTo(HaveOccurred())
