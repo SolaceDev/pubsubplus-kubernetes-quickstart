@@ -21,6 +21,8 @@ import (
 	pubsubplus "github.com/SolaceProducts/pubsubplus-operator/api/v1beta1"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	"path/filepath"
@@ -93,6 +95,23 @@ var _ = BeforeSuite(func() {
 		Expect(cleanupClient.List(ctx, remaining, runtimeClient.InNamespace("default"))).To(Succeed())
 		return len(remaining.Items)
 	}).WithTimeout(60 * time.Second).WithPolling(2 * time.Second).Should(Equal(0))
+
+	By("cleaning up any stale Secrets/ConfigMaps left behind by a previous run")
+	staleSecretNames := []string{
+		"monitoring-tls", "monitoring-user-secret", "monitoring-tls-new-config",
+		"monitoring-ds-secret", "secret-s-tls", "broker-sample-secret",
+		"preshared-sample-secret", "admin-sample-secret", "sample-secret",
+		"s-test-ha-prod-tls-secret", "s-test-ha-prod-nodeconfig-tls-secret",
+	}
+	for _, name := range staleSecretNames {
+		secret := &corev1.Secret{ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: "default"}}
+		Expect(runtimeClient.IgnoreNotFound(cleanupClient.Delete(ctx, secret))).To(Succeed())
+	}
+	staleConfigMapNames := []string{"sample-config"}
+	for _, name := range staleConfigMapNames {
+		cm := &corev1.ConfigMap{ObjectMeta: metav1.ObjectMeta{Name: name, Namespace: "default"}}
+		Expect(runtimeClient.IgnoreNotFound(cleanupClient.Delete(ctx, cm))).To(Succeed())
+	}
 
 	clientSet, err = kubernetes.NewForConfig(cfg)
 	Expect(err).NotTo(HaveOccurred())

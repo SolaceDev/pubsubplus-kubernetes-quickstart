@@ -236,6 +236,19 @@ var _ = Describe("Statefulset test", func() {
 			})
 
 			By("set up when in prod-level HA mode", func() {
+				tlsSecretProdHA := &corev1.Secret{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "s-test-ha-prod-tls-secret",
+						Namespace: namespace,
+					},
+					Data: map[string][]byte{
+						"tls.crt": []byte("dummy"),
+						"tls.key": []byte("dummy"),
+					},
+					Type: corev1.SecretTypeTLS,
+				}
+				Expect(k8sClient.Create(ctx, tlsSecretProdHA)).Should(Succeed())
+
 				brokerHA := pubsubplus.PubSubPlusEventBroker{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      broker_ha_prod_level_config,
@@ -273,7 +286,10 @@ var _ = Describe("Statefulset test", func() {
 							MonitorNodeStorageSize:   "0",
 						},
 						BrokerTLS: pubsubplus.BrokerTLS{
-							Enabled: true,
+							Enabled:               true,
+							ServerTLsConfigSecret: tlsSecretProdHA.Name,
+							TLSCertKeyName:        "tls.crt",
+							TLSCertName:           "tls.key",
 						},
 						Service: pubsubplus.Service{
 							ServiceType: corev1.ServiceTypeClusterIP,
@@ -312,10 +328,24 @@ var _ = Describe("Statefulset test", func() {
 
 				//delete broker
 				Expect(k8sClient.Delete(ctx, &brokerHA)).To(Succeed())
+				Expect(k8sClient.Delete(ctx, tlsSecretProdHA)).Should(Succeed())
 
 			})
 
 			By("set up when in prod-level HA mode with Node Config", func() {
+				tlsSecretProdHANodeConfig := &corev1.Secret{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "s-test-ha-prod-nodeconfig-tls-secret",
+						Namespace: namespace,
+					},
+					Data: map[string][]byte{
+						"tls.crt": []byte("dummy"),
+						"tls.key": []byte("dummy"),
+					},
+					Type: corev1.SecretTypeTLS,
+				}
+				Expect(k8sClient.Create(ctx, tlsSecretProdHANodeConfig)).Should(Succeed())
+
 				brokerHA := pubsubplus.PubSubPlusEventBroker{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      broker_ha_prod_level_config,
@@ -371,7 +401,10 @@ var _ = Describe("Statefulset test", func() {
 							},
 						},
 						BrokerTLS: pubsubplus.BrokerTLS{
-							Enabled: true,
+							Enabled:               true,
+							ServerTLsConfigSecret: tlsSecretProdHANodeConfig.Name,
+							TLSCertKeyName:        "tls.crt",
+							TLSCertName:           "tls.key",
 						},
 						Service: pubsubplus.Service{
 							ServiceType: corev1.ServiceTypeClusterIP,
@@ -410,6 +443,7 @@ var _ = Describe("Statefulset test", func() {
 
 				//delete broker
 				Expect(k8sClient.Delete(ctx, &brokerHA)).To(Succeed())
+				Expect(k8sClient.Delete(ctx, tlsSecretProdHANodeConfig)).Should(Succeed())
 
 			})
 
