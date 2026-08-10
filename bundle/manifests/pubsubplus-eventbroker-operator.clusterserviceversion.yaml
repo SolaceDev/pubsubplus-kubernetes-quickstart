@@ -20,8 +20,8 @@ metadata:
     certified: "true"
     com.redhat.delivery.operator.bundle: "true"
     com.redhat.openshift.versions: v4.10
-    containerImage: docker.io/solace/pubsubplus-eventbroker-operator:1.4.2
-    createdAt: "2025-07-31T19:48:36Z"
+    containerImage: ghcr.io/solacedev/pubsubplus-eventbroker-operator:1.4.2
+    createdAt: "2026-08-10T00:16:02Z"
     description: The Solace PubSub+ Event Broker Operator deploys and manages the
       lifecycle of PubSub+ Event Brokers
     operators.openshift.io/valid-subscription: '[]'
@@ -104,6 +104,10 @@ spec:
           - ""
           resources:
           - configmaps
+          - pods
+          - secrets
+          - serviceaccounts
+          - services
           verbs:
           - create
           - delete
@@ -128,68 +132,9 @@ spec:
           - list
           - watch
         - apiGroups:
-          - ""
-          resources:
-          - pods
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - ""
-          resources:
-          - secrets
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - ""
-          resources:
-          - serviceaccounts
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - ""
-          resources:
-          - services
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
           - apps
           resources:
           - deployments
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - apps
-          resources:
           - statefulsets
           verbs:
           - create
@@ -241,17 +186,6 @@ spec:
           - rbac.authorization.k8s.io
           resources:
           - rolebindings
-          verbs:
-          - create
-          - delete
-          - get
-          - list
-          - patch
-          - update
-          - watch
-        - apiGroups:
-          - rbac.authorization.k8s.io
-          resources:
           - roles
           verbs:
           - create
@@ -296,7 +230,7 @@ spec:
                   valueFrom:
                     fieldRef:
                       fieldPath: metadata.annotations['olm.targetNamespaces']
-                image: docker.io/solace/pubsubplus-eventbroker-operator:1.4.2
+                image: ghcr.io/solacedev/pubsubplus-eventbroker-operator:1.4.2
                 imagePullPolicy: Always
                 livenessProbe:
                   httpGet:
