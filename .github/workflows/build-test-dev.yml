@@ -6,7 +6,7 @@ on:
       - main
 
 env:
-  VERSION: 1.4.1
+  VERSION: 1.4.2
   IMAGE_NAME: pubsubplus-eventbroker-operator
   VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
   GCLOUD_PROJECT_ID_DEV: ${{ secrets.GCLOUD_PROJECT_ID }}
@@ -21,11 +21,12 @@ jobs:
       contents: read
       actions: read
       id-token: write
+      packages: write
     steps:
       - name: Set up Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
-          go-version: "1.24.2"
+          go-version: "1.26.5"
 
       - name: Check out code
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -38,7 +39,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.RELEASE_GITHUB_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - id: 'auth'
         name: 'Authenticate to Google Cloud'
@@ -109,56 +110,8 @@ jobs:
         if: ${{ startsWith(github.ref_name, 'dev1.') && (github.ref_name != 'main') }}
         uses: docker/setup-buildx-action@885d1462b80bc1c1c7f0b00334ad271f09369c55 # v2
 
-      - name: Checkout SolaceDev/maas-build-actions
-        if: ${{ startsWith(github.ref_name, 'dev1.') && (github.ref_name != 'main') }}
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with:
-          repository: SolaceDev/maas-build-actions
-          ref: refs/heads/master
-          token: ${{ secrets.RELEASE_GITHUB_TOKEN }}
-          persist-credentials: false
-          path: maas-build-actions
-
-      - name: Retrieve google container registry secrets
-        id: docker_registry_secrets
-        if: ${{ startsWith(github.ref_name, 'dev1.') && (github.ref_name != 'main') }}
-        uses: hashicorp/vault-action@130d1f5f4fe645bb6c83e4225c04d64cfb62de6e # v2.5.0
-        with:
-          url: "${{ env.VAULT_ADDR }}"
-          role: github-docker-secrets-read-role
-          method: jwt
-          path: jwt-github
-          jwtGithubAudience: https://github.com/SolaceDev
-          exportToken: true
-          secrets: |
-            secret/data/development/gcp-gcr GCP_SERVICE_ACCOUNT | GCP_DEV_SERVICE_ACCOUNT
-        env:
-          VERSION: ${{ env.VERSION }}
-          IMAGE_NAME: pubsubplus-eventbroker-operator
-          VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
-          GCLOUD_PROJECT_ID_DEV: ${{ secrets.GCLOUD_PROJECT_ID }}
-
-      - name: Log in to gcr development docker registry
-        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
-        if: ${{ startsWith(github.ref_name, 'dev1.') && (github.ref_name != 'main') }}
-        with:
-          registry: gcr.io
-          username: _json_key
-          password: ${{ steps.docker_registry_secrets.outputs.GCP_DEV_SERVICE_ACCOUNT }}
-
-      - name: Build image and push Google Container Registry
-        uses: docker/build-push-action@ac9327eae2b366085ac7f6a2d02df8aa8ead720a # v2
-        if: ${{ startsWith(github.ref_name, 'dev1.') && (github.ref_name != 'main') }}
-        with:
-          context: ./
-          tags: |
-            gcr.io/${{ env.GCLOUD_PROJECT_ID_DEV }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
-          push: true
-        env:
-          VERSION: ${{ env.VERSION }}
-          IMAGE_NAME: ${{ env.IMAGE_NAME }}
-          VAULT_ADDR: ${{ secrets.VAULT_ADDR }}
-          GCLOUD_PROJECT_ID_DEV: ${{ secrets.GCLOUD_PROJECT_ID }}
+      # Checkout only feeds the Prisma vulnerability check below, which is disabled - skip it too
+      # (its RELEASE_GITHUB_TOKEN checkout was failing with no consumer left to justify fixing it)
 
       - name: Build image and push GitHub Container Registry
         run: make docker-push
@@ -174,7 +127,7 @@ jobs:
 
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@6c175e9c4083a92bbca2f9724c8a5e33bc2d97a5 # v0.30.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         if: ${{ startsWith(github.ref_name, 'dev1.') && (github.ref_name != 'main') }}
         with:
           image-ref: ghcr.io/solacedev/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
@@ -191,7 +144,7 @@ jobs:
             trivy-results.sarif
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@6c175e9c4083a92bbca2f9724c8a5e33bc2d97a5 # v0.30.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         if: ${{ startsWith(github.ref_name, 'dev1.') && (github.ref_name != 'main') }}
         with:
           image-ref: ghcr.io/solacedev/${{ env.IMAGE_NAME }}:${{ env.VERSION }}

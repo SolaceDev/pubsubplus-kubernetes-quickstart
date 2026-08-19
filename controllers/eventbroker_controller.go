@@ -18,10 +18,11 @@ package controllers
 
 import (
 	"fmt"
+	"strconv"
+
 	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
-	"strconv"
 
 	// "reflect"
 	"strings"
@@ -38,6 +39,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 
 	"context"
+	stderrors "errors"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -511,6 +513,9 @@ func (r *PubSubPlusEventBrokerReconciler) Reconcile(ctx context.Context, req ctr
 		stssForTlsMigration = append(stssForTlsMigration, stsB, stsM)
 	}
 	if err := r.migrateLegacyTlsAnnotations(ctx, pubsubpluseventbroker, stssForTlsMigration, tlsSecretHash, tlsSecretResourceVersion); err != nil {
+		if stderrors.Is(err, context.Canceled) || stderrors.Is(err, context.DeadlineExceeded) {
+			return ctrl.Result{}, nil
+		}
 		r.recordErrorState(ctx, log, pubsubpluseventbroker, err, ResourceErrorReason, "Failed to migrate TLS secret annotations")
 		return ctrl.Result{}, err
 	}

@@ -4,7 +4,7 @@ on:
       release_tag:
         description: 'Release tag'
         required: true
-        default: '1.4.1'
+        default: '1.4.2'
       prep_internal_release:
         # Need to distinguish between internal and external releases
         # Internal release: Will use default internal location for created images (ghcr.io) and will tag and push operator candidate there
@@ -24,7 +24,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
-          go-version: 1.24.2
+          go-version: 1.26.5
 
       - name: Login to Github Packages
         uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc # v2
@@ -41,7 +41,7 @@ jobs:
           # Operator SDK
           export ARCH=$(case $(uname -m) in x86_64) echo -n amd64 ;; aarch64) echo -n arm64 ;; *) echo -n $(uname -m) ;; esac)
           export OS=$(uname | awk '{print tolower($0)}')
-          export OPERATOR_SDK_DL_URL=https://github.com/operator-framework/operator-sdk/releases/download/v1.27.0
+          export OPERATOR_SDK_DL_URL=https://github.com/operator-framework/operator-sdk/releases/download/v1.34.1
           curl -LO ${OPERATOR_SDK_DL_URL}/operator-sdk_${OS}_${ARCH}
           chmod +x operator-sdk_${OS}_${ARCH} && sudo mv operator-sdk_${OS}_${ARCH} /usr/local/bin/operator-sdk
 

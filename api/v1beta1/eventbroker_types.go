@@ -152,6 +152,7 @@ type BrokerPort struct {
 	// Unique name for the port that can be referred to by services.
 	Name string `json:"name"`
 	//+kubebuilder:validation:Enum=TCP;UDP;SCTP
+	//+kubebuilder:default:=TCP
 	// Protocol for port. Must be UDP, TCP, or SCTP.
 	Protocol corev1.Protocol `json:"protocol"`
 	//+kubebuilder:validation:Type:=number
@@ -500,6 +501,7 @@ type MonitoringMetricsEndpoint struct {
 	ListenTLS bool `json:"listenTLS"`
 	//+optional
 	//+kubebuilder:validation:Enum=TCP;UDP;SCTP
+	//+kubebuilder:default:=TCP
 	// Protocol for port. Must be UDP, TCP, or SCTP.
 	Protocol corev1.Protocol `json:"protocol"`
 	//+optional
