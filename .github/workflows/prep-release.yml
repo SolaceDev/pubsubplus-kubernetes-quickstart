@@ -80,6 +80,15 @@ jobs:
           make create-deploy-yaml
           make bundle
 
+      - name: Vulnerability Gate - Prisma
+        if: ${{ github.event.inputs.prep_internal_release == 'true' }}
+        uses: SolaceDev/maas-build-actions/.github/actions/prisma-vulnerability-checker@master
+        with:
+          docker_image_to_check: "${{ env.CONTROLLER_CONTAINER_REPO }}/pubsubplus-eventbroker-operator:v${{ github.event.inputs.release_tag }}"
+          prisma_repository_name: "pubsubplus-eventbroker-operator"
+          project_squad: "launchpad"
+          prisma_jira_check: "False"
+
       - name: Prep for testing - create K8s Kind Cluster
         uses: helm/kind-action@v1.3.0
 
